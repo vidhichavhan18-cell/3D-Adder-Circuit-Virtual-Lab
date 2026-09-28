@@ -1,0 +1,3636 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Digital Electronics Virtual Lab — Adder Circuits (Interactive 3D Simulation &amp; Wiring)</title>
+  
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+
+  <!-- Three.js + OrbitControls: Local first (offline guaranteed), with CDN fallback -->
+  <script src="js/three.min.js"></script>
+  <script src="js/OrbitControls.js"></script>
+  <script>
+    if (typeof THREE === 'undefined') {
+      document.write('<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"><\/script>');
+      document.write('<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"><\/script>');
+    }
+  </script>
+
+  <style>
+    /* ==========================================================================
+       MODERN VIRTUAL LAB DESIGN SYSTEM
+       Theme: High-contrast Dark Tech Lab with Vivid Logic Signals
+       ========================================================================== */
+    :root {
+      --bg: #070d17;
+      --bg-alt: #0b1524;
+      --surface: #0f1c30;
+      --surface-card: #13243d;
+      --surface-hover: #192e4d;
+      --border: rgba(255, 255, 255, 0.08);
+      --border-accent: rgba(0, 212, 255, 0.3);
+      
+      --cyan: #00d4ff;
+      --cyan-glow: rgba(0, 212, 255, 0.4);
+      --amber: #f59e0b;
+      --amber-glow: rgba(245, 158, 11, 0.4);
+      --green: #10b981;
+      --green-glow: rgba(16, 185, 129, 0.4);
+      --purple: #a855f7;
+      --purple-glow: rgba(168, 85, 247, 0.4);
+      --red: #ef4444;
+      --red-glow: rgba(239, 68, 68, 0.4);
+      
+      --text: #f1f5f9;
+      --text-muted: #94a3b8;
+      --text-dim: #64748b;
+      
+      --font: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      --mono: 'JetBrains Mono', monospace;
+      --radius-sm: 8px;
+      --radius-md: 12px;
+      --radius-lg: 18px;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body {
+      width: 100%; min-height: 100vh;
+      background-color: var(--bg);
+      color: var(--text);
+      font-family: var(--font);
+      font-size: 14px;
+      line-height: 1.5;
+      overflow-x: hidden;
+    }
+
+    /* Ambient Tech Grid Background */
+    .tech-bg {
+      position: fixed; inset: 0; pointer-events: none; z-index: 0;
+      background-image: 
+        radial-gradient(circle at 15% 10%, rgba(0, 212, 255, 0.06) 0%, transparent 40%),
+        radial-gradient(circle at 85% 85%, rgba(168, 85, 247, 0.05) 0%, transparent 45%),
+        linear-gradient(rgba(255, 255, 255, 0.02) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
+      background-size: 100% 100%, 100% 100%, 40px 40px, 40px 40px;
+    }
+
+    .container {
+      max-width: 1360px; margin: 0 auto; padding: 0 24px;
+      position: relative; z-index: 1;
+    }
+
+    .mono { font-family: var(--mono); }
+
+    /* Top Navigation Bar */
+    header.lab-navbar {
+      position: sticky; top: 0; z-index: 100;
+      background: rgba(7, 13, 23, 0.94);
+      backdrop-filter: blur(16px);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .nav-container {
+      display: flex; align-items: center; justify-content: space-between;
+      height: 64px;
+    }
+
+    .brand-box {
+      display: flex; align-items: center; gap: 12px;
+      text-decoration: none; color: inherit; cursor: pointer;
+    }
+
+    .brand-icon-wrapper {
+      width: 40px; height: 40px; border-radius: 10px;
+      background: linear-gradient(135deg, rgba(0,212,255,0.2), rgba(168,85,247,0.2));
+      border: 1px solid var(--border-accent);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 20px;
+      box-shadow: 0 0 16px rgba(0,212,255,0.25);
+    }
+
+    .brand-title {
+      font-size: 15px; font-weight: 700; letter-spacing: -0.01em;
+      display: flex; align-items: center; gap: 6px;
+    }
+    .brand-title span.tag {
+      font-size: 10px; padding: 2px 7px; border-radius: 4px;
+      background: rgba(0,212,255,0.15); color: var(--cyan);
+      border: 1px solid rgba(0,212,255,0.3); font-weight: 600;
+    }
+    .brand-dept { font-size: 11px; color: var(--text-muted); }
+
+    /* Nav Tabs */
+    .nav-steps {
+      display: flex; align-items: center; gap: 4px;
+      background: rgba(255, 255, 255, 0.03);
+      padding: 4px; border-radius: 12px;
+      border: 1px solid var(--border);
+    }
+
+    .step-link {
+      display: flex; align-items: center; gap: 8px;
+      padding: 8px 16px; border-radius: 8px;
+      background: transparent; border: none;
+      color: var(--text-muted); font-size: 13px; font-weight: 600;
+      cursor: pointer; transition: all 0.2s ease;
+      font-family: inherit;
+    }
+
+    .step-link:hover { color: var(--text); background: rgba(255,255,255,0.04); }
+    .step-link.active {
+      color: #03080e; background: var(--cyan);
+      box-shadow: 0 0 14px rgba(0, 212, 255, 0.4);
+    }
+    .step-link.done { color: var(--cyan); }
+
+    .step-num {
+      width: 20px; height: 20px; border-radius: 50%;
+      background: rgba(255,255,255,0.1); font-size: 11px;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .step-link.active .step-num { background: rgba(0,0,0,0.25); color: #000; font-weight: 700; }
+    .step-link.done .step-num { background: rgba(0, 212, 255, 0.2); color: var(--cyan); }
+
+    .nav-actions { display: flex; align-items: center; gap: 12px; }
+
+    .student-badge {
+      display: flex; align-items: center; gap: 9px;
+      padding: 6px 14px; border-radius: 99px;
+      background: var(--surface); border: 1px solid var(--border);
+      font-size: 12px;
+    }
+
+    .student-avatar {
+      width: 26px; height: 26px; border-radius: 50%;
+      background: linear-gradient(135deg, var(--cyan), var(--purple));
+      display: flex; align-items: center; justify-content: center;
+      font-weight: 700; color: #000; font-size: 11px;
+    }
+
+    .btn-logout {
+      background: transparent; border: none; color: var(--text-dim);
+      cursor: pointer; font-size: 12px; padding: 4px;
+      display: flex; align-items: center; gap: 4px; transition: color 0.2s;
+    }
+    .btn-logout:hover { color: var(--red); }
+
+    /* Multi-Page Container */
+    .page-section {
+      display: none; padding: 36px 0 72px 0;
+      animation: pageIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+    .page-section.active { display: block; }
+
+    @keyframes pageIn {
+      from { opacity: 0; transform: translateY(12px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Common Card Styles */
+    .glass-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      overflow: hidden;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+    }
+
+    .glass-card-header {
+      padding: 16px 20px;
+      border-bottom: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: space-between;
+      font-size: 12px; font-weight: 700; text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+
+    .glass-card-body { padding: 20px; }
+
+    /* ==========================================================================
+       MODAL ALERT FOR INCORRECT CONNECTIONS (Fault Notification System)
+       ========================================================================== */
+    .alert-modal-backdrop {
+      position: fixed; inset: 0; z-index: 1000;
+      background: rgba(3, 8, 16, 0.85); backdrop-filter: blur(10px);
+      display: none; align-items: center; justify-content: center;
+      padding: 20px;
+    }
+    .alert-modal-backdrop.show { display: flex; animation: modalPop 0.25s cubic-bezier(0.16, 1, 0.3, 1); }
+
+    @keyframes modalPop {
+      from { opacity: 0; transform: scale(0.92); }
+      to { opacity: 1; transform: scale(1); }
+    }
+
+    .alert-modal-box {
+      width: 100%; max-width: 520px;
+      background: var(--surface); border: 2px solid var(--red);
+      border-radius: var(--radius-lg); overflow: hidden;
+      box-shadow: 0 24px 64px rgba(239, 68, 68, 0.3), 0 0 0 1px rgba(239, 68, 68, 0.4);
+    }
+    .alert-modal-box.success-theme {
+      border-color: var(--green);
+      box-shadow: 0 24px 64px rgba(16, 185, 129, 0.3);
+    }
+
+    .alert-modal-header {
+      padding: 22px 24px 16px; display: flex; align-items: center; gap: 14px;
+      border-bottom: 1px solid var(--border);
+      background: rgba(239, 68, 68, 0.08);
+    }
+    .alert-modal-box.success-theme .alert-modal-header {
+      background: rgba(16, 185, 129, 0.08);
+    }
+
+    .alert-icon-circle {
+      width: 44px; height: 44px; border-radius: 50%;
+      background: rgba(239, 68, 68, 0.2); border: 1px solid var(--red);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 22px; flex-shrink: 0;
+    }
+    .alert-modal-box.success-theme .alert-icon-circle {
+      background: rgba(16, 185, 129, 0.2); border-color: var(--green); color: var(--green);
+    }
+
+    .alert-modal-title { font-size: 17px; font-weight: 800; letter-spacing: -0.01em; color: var(--text); }
+    .alert-modal-tag {
+      font-size: 10px; font-weight: 700; text-transform: uppercase;
+      letter-spacing: 0.1em; color: var(--red);
+    }
+    .alert-modal-box.success-theme .alert-modal-tag { color: var(--green); }
+
+    .alert-modal-content { padding: 22px 24px; font-size: 13px; line-height: 1.65; color: var(--text-muted); }
+    .alert-modal-fault-code {
+      font-family: var(--mono); font-size: 12px; padding: 10px 14px;
+      background: var(--bg-alt); border-radius: var(--radius-sm);
+      border: 1px solid var(--border); margin: 12px 0; color: var(--text);
+    }
+    .alert-modal-advice {
+      background: rgba(0, 212, 255, 0.05); border: 1px solid rgba(0, 212, 255, 0.2);
+      padding: 10px 14px; border-radius: var(--radius-sm); color: var(--cyan);
+      font-size: 12px; margin-top: 12px;
+    }
+
+    .alert-modal-footer {
+      padding: 16px 24px; border-top: 1px solid var(--border);
+      display: flex; justify-content: flex-end; gap: 10px;
+    }
+    .btn-alert-dismiss {
+      padding: 10px 20px; border-radius: var(--radius-sm);
+      background: var(--red); border: none; color: #fff;
+      font-size: 13px; font-weight: 700; cursor: pointer;
+      font-family: inherit; transition: opacity 0.2s;
+    }
+    .alert-modal-box.success-theme .btn-alert-dismiss {
+      background: var(--green); color: #000;
+    }
+    .btn-alert-dismiss:hover { opacity: 0.9; }
+
+    /* ==========================================================================
+       PAGE 0: LOGIN & ONBOARDING
+       ========================================================================== */
+    .login-wrapper {
+      min-height: calc(100vh - 120px);
+      display: flex; align-items: center; justify-content: center;
+      padding: 24px;
+    }
+
+    .login-panel {
+      width: 100%; max-width: 480px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      box-shadow: 0 24px 64px rgba(0,0,0,0.6), 0 0 0 1px rgba(0,212,255,0.1);
+      overflow: hidden;
+    }
+
+    .login-hero {
+      padding: 36px 32px 24px; text-align: center;
+      background: linear-gradient(180deg, rgba(0,212,255,0.08) 0%, transparent 100%);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .login-chip {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 4px 12px; border-radius: 99px;
+      background: rgba(0,212,255,0.1); border: 1px solid rgba(0,212,255,0.25);
+      color: var(--cyan); font-size: 11px; font-weight: 600; text-transform: uppercase;
+      letter-spacing: 0.1em; margin-bottom: 16px;
+    }
+    .login-chip span.pulse {
+      width: 6px; height: 6px; border-radius: 50%; background: var(--cyan);
+      box-shadow: 0 0 8px var(--cyan); animation: pulseDot 2s infinite;
+    }
+    @keyframes pulseDot { 0%,100%{opacity:1;} 50%{opacity:0.3;} }
+
+    .login-title { font-size: 24px; font-weight: 800; letter-spacing: -0.02em; margin-bottom: 6px; }
+    .login-subtitle { font-size: 13px; color: var(--text-muted); }
+
+    .login-body { padding: 32px; }
+
+    .form-group { margin-bottom: 18px; }
+    .form-label {
+      display: block; font-size: 11px; font-weight: 600;
+      text-transform: uppercase; letter-spacing: 0.08em;
+      color: var(--text-muted); margin-bottom: 7px;
+    }
+
+    .form-input, .form-select {
+      width: 100%; padding: 12px 14px; border-radius: var(--radius-sm);
+      background: var(--bg-alt); border: 1px solid var(--border);
+      color: var(--text); font-family: inherit; font-size: 13px;
+      outline: none; transition: all 0.2s ease;
+    }
+    .form-input:focus, .form-select:focus {
+      border-color: var(--cyan); box-shadow: 0 0 0 3px rgba(0,212,255,0.15);
+    }
+
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+
+    .btn-enter-lab {
+      width: 100%; padding: 14px; border-radius: var(--radius-sm);
+      background: linear-gradient(135deg, var(--cyan), #0099ff);
+      border: none; color: #03080e; font-size: 14px; font-weight: 700;
+      font-family: inherit; cursor: pointer; transition: all 0.25s ease;
+      box-shadow: 0 0 24px rgba(0, 212, 255, 0.35);
+      display: flex; align-items: center; justify-content: center; gap: 8px;
+    }
+    .btn-enter-lab:hover { transform: translateY(-1px); box-shadow: 0 0 36px rgba(0, 212, 255, 0.55); }
+
+    .btn-quick-demo {
+      width: 100%; margin-top: 10px; padding: 11px; border-radius: var(--radius-sm);
+      background: rgba(255,255,255,0.04); border: 1px solid var(--border);
+      color: var(--text-muted); font-size: 12px; font-weight: 600;
+      font-family: inherit; cursor: pointer; transition: all 0.2s ease;
+    }
+    .btn-quick-demo:hover { background: rgba(255,255,255,0.08); color: var(--text); }
+
+    /* ==========================================================================
+       PAGE 1: OVERVIEW & THEORY
+       ========================================================================== */
+    .hero-banner { padding: 48px 0 36px; text-align: center; }
+
+    .hero-badge {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 5px 14px; border-radius: 99px;
+      background: rgba(0,212,255,0.08); border: 1px solid rgba(0,212,255,0.25);
+      color: var(--cyan); font-size: 11px; font-weight: 600; text-transform: uppercase;
+      letter-spacing: 0.12em; margin-bottom: 20px;
+    }
+
+    .hero-title {
+      font-size: clamp(32px, 5vw, 54px); font-weight: 800;
+      letter-spacing: -0.03em; line-height: 1.15; margin-bottom: 18px;
+    }
+    .hero-title span.glow-text {
+      background: linear-gradient(135deg, var(--cyan), #60a5fa);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    }
+
+    .hero-desc {
+      max-width: 680px; margin: 0 auto; color: var(--text-muted);
+      font-size: 15px; line-height: 1.7;
+    }
+
+    .hero-cta {
+      display: flex; align-items: center; justify-content: space-between; gap: 14px;
+      margin-top: 32px; justify-content: center;
+    }
+
+    .btn-cta-primary {
+      padding: 13px 28px; border-radius: 10px;
+      background: var(--cyan); border: none; color: #03080e;
+      font-size: 14px; font-weight: 700; cursor: pointer;
+      display: flex; align-items: center; gap: 8px;
+      box-shadow: 0 0 24px rgba(0, 212, 255, 0.4);
+      transition: all 0.2s ease;
+    }
+    .btn-cta-primary:hover { transform: translateY(-2px); box-shadow: 0 0 36px rgba(0, 212, 255, 0.6); }
+
+    .btn-cta-secondary {
+      padding: 13px 24px; border-radius: 10px;
+      background: var(--surface); border: 1px solid var(--border);
+      color: var(--text); font-size: 14px; font-weight: 600; cursor: pointer;
+      display: flex; align-items: center; gap: 8px; transition: all 0.2s ease;
+    }
+    .btn-cta-secondary:hover { background: var(--surface-hover); border-color: rgba(255,255,255,0.2); }
+
+    .theory-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-top: 40px; }
+
+    .circuit-spec-card {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: var(--radius-lg); padding: 28px;
+      transition: all 0.25s ease; position: relative;
+    }
+    .circuit-spec-card:hover { border-color: rgba(0,212,255,0.3); transform: translateY(-3px); }
+
+    .circuit-spec-header {
+      display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px;
+    }
+    .circuit-spec-badge {
+      font-size: 11px; padding: 4px 10px; border-radius: 6px;
+      font-weight: 700; font-family: var(--mono);
+    }
+    .badge-half { background: rgba(0,212,255,0.15); color: var(--cyan); }
+    .badge-full { background: rgba(245,158,11,0.15); color: var(--amber); }
+
+    .circuit-spec-title { font-size: 20px; font-weight: 700; margin-bottom: 10px; }
+    .circuit-spec-desc { font-size: 13px; color: var(--text-muted); line-height: 1.65; margin-bottom: 20px; }
+
+    .circuit-formula-box {
+      background: var(--bg-alt); border: 1px solid var(--border);
+      border-radius: var(--radius-sm); padding: 14px 16px; font-family: var(--mono);
+      font-size: 13px; line-height: 1.8;
+    }
+    .formula-row-item { display: flex; justify-content: space-between; }
+    .formula-var { color: var(--text-muted); }
+    .formula-eq { color: var(--cyan); font-weight: 600; }
+
+    .gate-symbols-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+    .gate-symbol-card {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: var(--radius-md); padding: 22px; text-align: center;
+    }
+    .gate-icon-large {
+      font-size: 32px; font-family: var(--mono); font-weight: 700;
+      width: 60px; height: 60px; border-radius: 12px;
+      margin: 0 auto 14px; display: flex; align-items: center; justify-content: center;
+      background: var(--bg-alt); border: 1px solid var(--border);
+    }
+    .gate-name-label { font-size: 14px; font-weight: 700; margin-bottom: 4px; }
+    .gate-formula-code { font-family: var(--mono); font-size: 12px; margin-bottom: 8px; }
+    .gate-purpose { font-size: 12px; color: var(--text-muted); line-height: 1.5; }
+
+    /* ==========================================================================
+       PAGE 2 & PAGE 3: 3D WORKBENCH WITH INTERACTIVE WIRING
+       ========================================================================== */
+    .workbench-header {
+      display: flex; align-items: flex-end; justify-content: space-between;
+      gap: 20px; margin-bottom: 16px; flex-wrap: wrap;
+    }
+
+    .workbench-heading-title {
+      font-size: 26px; font-weight: 800; letter-spacing: -0.02em;
+      display: flex; align-items: center; gap: 10px;
+    }
+    .workbench-heading-desc { font-size: 13px; color: var(--text-muted); margin-top: 4px; }
+
+    .workbench-action-toolbar {
+      display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+    }
+
+    .tool-btn {
+      padding: 9px 16px; border-radius: var(--radius-sm);
+      background: var(--surface); border: 1px solid var(--border);
+      color: var(--text); font-size: 12px; font-weight: 600;
+      font-family: inherit; cursor: pointer; transition: all 0.2s ease;
+      display: flex; align-items: center; gap: 6px;
+    }
+    .tool-btn:hover { background: var(--surface-hover); border-color: rgba(255,255,255,0.2); }
+    .tool-btn.primary { background: rgba(0,212,255,0.1); border-color: rgba(0,212,255,0.3); color: var(--cyan); }
+    .tool-btn.primary:hover { background: rgba(0,212,255,0.2); }
+    .tool-btn.active { background: var(--cyan); color: #000; font-weight: 700; }
+    .tool-btn.danger { background: rgba(239, 68, 68, 0.1); border-color: rgba(239, 68, 68, 0.3); color: var(--red); }
+    .tool-btn.danger:hover { background: rgba(239, 68, 68, 0.2); }
+
+    /* Interactive Wiring Mode Guide Banner */
+    .wiring-status-strip {
+      padding: 12px 18px; border-radius: var(--radius-md);
+      background: var(--surface); border: 1px solid var(--border);
+      margin-bottom: 16px; display: flex; align-items: center; justify-content: space-between;
+      gap: 16px; flex-wrap: wrap;
+    }
+    .wiring-status-strip.state-incomplete {
+      border-color: rgba(245, 158, 11, 0.4); background: rgba(245, 158, 11, 0.05);
+    }
+    .wiring-status-strip.state-verified {
+      border-color: rgba(16, 185, 129, 0.4); background: rgba(16, 185, 129, 0.05);
+    }
+
+    .wiring-guide-left { display: flex; align-items: center; gap: 12px; }
+    .wiring-mode-pill {
+      font-size: 10px; font-weight: 700; text-transform: uppercase;
+      letter-spacing: 0.1em; padding: 4px 10px; border-radius: 6px;
+    }
+    .pill-manual { background: rgba(245,158,11,0.2); color: var(--amber); }
+    .pill-complete { background: rgba(16,185,129,0.2); color: var(--green); }
+
+    .wiring-instructions-text { font-size: 13px; font-weight: 600; color: var(--text); }
+    .wiring-instructions-sub { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
+
+    .wiring-progress-counter {
+      font-family: var(--mono); font-size: 13px; font-weight: 700;
+      display: flex; align-items: center; gap: 8px;
+    }
+
+    /* 3D Canvas Viewport */
+    .viewport-container {
+      position: relative; width: 100%; height: 500px;
+      border-radius: var(--radius-lg); overflow: hidden;
+      border: 1px solid var(--border);
+      background: radial-gradient(circle at 50% 50%, #0d1e34 0%, #060e18 100%);
+      box-shadow: 0 16px 48px rgba(0,0,0,0.5), inset 0 0 100px rgba(0,0,0,0.5);
+    }
+
+    .canvas-3d-target {
+      width: 100% !important; height: 100% !important;
+      display: block; cursor: grab;
+    }
+
+    .viewport-hud {
+      position: absolute; top: 16px; left: 16px; z-index: 10;
+      display: flex; flex-direction: column; gap: 8px; pointer-events: none;
+    }
+
+    .hud-tag {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 6px 12px; border-radius: 8px;
+      background: rgba(7, 13, 23, 0.85); backdrop-filter: blur(12px);
+      border: 1px solid rgba(255,255,255,0.12);
+      font-size: 11px; font-weight: 600; color: var(--cyan);
+    }
+    .hud-tag span.dot {
+      width: 6px; height: 6px; border-radius: 50%; background: var(--cyan);
+      box-shadow: 0 0 8px var(--cyan);
+    }
+
+    .hud-hint {
+      font-size: 10px; color: var(--text-dim); background: rgba(7, 13, 23, 0.7);
+      padding: 4px 10px; border-radius: 6px; backdrop-filter: blur(8px);
+    }
+
+    .viewport-camera-toolbar {
+      position: absolute; bottom: 16px; right: 16px; z-index: 10;
+      display: flex; align-items: center; gap: 6px;
+      background: rgba(7, 13, 23, 0.88); backdrop-filter: blur(12px);
+      padding: 5px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.12);
+    }
+
+    .cam-btn {
+      padding: 6px 12px; border-radius: 6px;
+      background: transparent; border: none; color: var(--text-muted);
+      font-size: 11px; font-weight: 600; cursor: pointer;
+      transition: all 0.15s ease; font-family: inherit;
+    }
+    .cam-btn:hover { background: rgba(255,255,255,0.08); color: var(--text); }
+    .cam-btn.active { background: rgba(0,212,255,0.2); color: var(--cyan); }
+
+    /* Interactive 3D Selected Pin Banner */
+    .pin-selection-banner {
+      position: absolute; top: 16px; right: 16px; z-index: 10;
+      display: flex; align-items: center; gap: 8px;
+      background: rgba(245, 158, 11, 0.15); border: 1px solid rgba(245, 158, 11, 0.5);
+      backdrop-filter: blur(10px); padding: 7px 16px; border-radius: 99px;
+      font-size: 12px; font-weight: 700; color: var(--amber);
+      box-shadow: 0 0 20px rgba(245,158,11,0.2);
+    }
+
+    /* Interactive Pin Selector Terminal Bar (Quick Wiring) */
+    .quick-wiring-bar {
+      margin-top: 14px; padding: 14px 18px; border-radius: var(--radius-md);
+      background: var(--surface); border: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: space-between;
+      gap: 14px; flex-wrap: wrap;
+    }
+    .quick-wiring-label { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: var(--text-muted); }
+    .pin-dropdown-group { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+    .pin-select-box {
+      padding: 8px 12px; border-radius: var(--radius-sm);
+      background: var(--bg-alt); border: 1px solid var(--border);
+      color: var(--text); font-family: var(--mono); font-size: 12px;
+      outline: none;
+    }
+    .btn-connect-wire {
+      padding: 8px 18px; border-radius: var(--radius-sm);
+      background: var(--cyan); border: none; color: #000;
+      font-size: 12px; font-weight: 700; cursor: pointer;
+      font-family: inherit; transition: all 0.2s;
+    }
+    .btn-connect-wire:hover { background: #33ddff; }
+
+    /* Schematic View (Toggleable) */
+    .schematic-overlay {
+      position: absolute; inset: 0; z-index: 20;
+      background: #091424; display: none; padding: 24px;
+      align-items: center; justify-content: center;
+    }
+    .schematic-overlay.active { display: flex; }
+    .schematic-svg-container { max-width: 90%; max-height: 90%; }
+
+    /* Workbench Controls Grid */
+    .workbench-dashboard {
+      display: grid; grid-template-columns: 280px 1fr 260px;
+      gap: 20px; margin-top: 20px;
+    }
+
+    .switch-card-item {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 12px 16px; border-radius: var(--radius-sm);
+      background: var(--bg-alt); border: 1px solid var(--border);
+      margin-bottom: 10px; cursor: pointer; transition: all 0.2s ease;
+      user-select: none;
+    }
+    .switch-card-item:hover { border-color: rgba(0,212,255,0.3); background: var(--surface-hover); }
+    .switch-card-item.active {
+      border-color: rgba(0,212,255,0.5); background: rgba(0,212,255,0.06);
+    }
+    .switch-card-item.disabled {
+      opacity: 0.5; cursor: not-allowed; pointer-events: none;
+    }
+
+    .switch-info-group .switch-title {
+      font-size: 15px; font-weight: 700; display: flex; align-items: center; gap: 6px;
+    }
+    .switch-info-group .switch-subtitle { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
+
+    .switch-toggle-assembly { display: flex; align-items: center; gap: 10px; }
+    .switch-numeric-val {
+      font-family: var(--mono); font-size: 22px; font-weight: 700;
+      color: var(--text-dim); min-width: 20px; text-align: center;
+      transition: color 0.2s ease;
+    }
+    .switch-card-item.active .switch-numeric-val { color: var(--cyan); }
+
+    .switch-track-pill {
+      width: 52px; height: 28px; border-radius: 99px;
+      background: #1e334a; border: 1px solid rgba(255,255,255,0.1);
+      position: relative; transition: all 0.25s ease;
+    }
+    .switch-thumb-circle {
+      position: absolute; top: 4px; left: 4px;
+      width: 18px; height: 18px; border-radius: 50%;
+      background: var(--text-muted); transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+    .switch-card-item.active .switch-track-pill {
+      background: rgba(0,212,255,0.25); border-color: var(--cyan);
+    }
+    .switch-card-item.active .switch-thumb-circle {
+      transform: translateX(24px); background: var(--cyan);
+      box-shadow: 0 0 10px var(--cyan);
+    }
+
+    /* Logic Gates State Monitor */
+    .gate-states-grid {
+      display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+      gap: 10px;
+    }
+    .gate-mini-card {
+      background: var(--bg-alt); border: 1px solid var(--border);
+      border-radius: var(--radius-sm); padding: 12px;
+      transition: all 0.2s ease; position: relative;
+    }
+    .gate-mini-card.active-cyan {
+      border-color: rgba(0,212,255,0.5); background: rgba(0,212,255,0.06);
+      box-shadow: 0 0 16px rgba(0,212,255,0.12);
+    }
+    .gate-mini-card.active-amber {
+      border-color: rgba(245,158,11,0.5); background: rgba(245,158,11,0.06);
+      box-shadow: 0 0 16px rgba(245,158,11,0.12);
+    }
+    .gate-mini-card.active-purple {
+      border-color: rgba(168,85,247,0.5); background: rgba(168,85,247,0.06);
+      box-shadow: 0 0 16px rgba(168,85,247,0.12);
+    }
+
+    .gate-tag-row {
+      display: flex; align-items: center; justify-content: space-between;
+      font-size: 10px; font-weight: 700; text-transform: uppercase;
+      letter-spacing: 0.08em; color: var(--text-muted); margin-bottom: 4px;
+    }
+    .gate-mini-dot { width: 7px; height: 7px; border-radius: 50%; }
+    .gate-mini-formula { font-family: var(--mono); font-size: 11px; color: var(--cyan); }
+    .gate-big-state {
+      font-family: var(--mono); font-size: 26px; font-weight: 700;
+      color: var(--text-dim); margin: 4px 0; transition: color 0.2s;
+    }
+    .gate-mini-card.active-cyan .gate-big-state { color: var(--cyan); }
+    .gate-mini-card.active-amber .gate-big-state { color: var(--amber); }
+    .gate-mini-card.active-purple .gate-big-state { color: var(--purple); }
+    .gate-mini-role { font-size: 10px; color: var(--text-dim); line-height: 1.4; }
+
+    /* Output LEDs */
+    .led-output-card {
+      display: flex; align-items: center; gap: 14px;
+      padding: 14px 16px; border-radius: var(--radius-sm);
+      background: var(--bg-alt); border: 1px solid var(--border);
+      margin-bottom: 10px; transition: all 0.25s ease;
+    }
+    .led-output-card.on-sum {
+      border-color: rgba(0,212,255,0.5); background: rgba(0,212,255,0.07);
+    }
+    .led-output-card.on-carry {
+      border-color: rgba(245,158,11,0.5); background: rgba(245,158,11,0.07);
+    }
+
+    .led-dome-fixture {
+      width: 34px; height: 34px; border-radius: 50%;
+      background: #17283c; border: 2px solid rgba(255,255,255,0.1);
+      flex-shrink: 0; position: relative; transition: all 0.25s ease;
+    }
+    .led-output-card.on-sum .led-dome-fixture {
+      background: var(--cyan); border-color: rgba(0,212,255,0.9);
+      box-shadow: 0 0 20px var(--cyan), 0 0 40px rgba(0,212,255,0.5);
+    }
+    .led-output-card.on-carry .led-dome-fixture {
+      background: var(--amber); border-color: rgba(245,158,11,0.9);
+      box-shadow: 0 0 20px var(--amber), 0 0 40px rgba(245,158,11,0.5);
+    }
+
+    .led-text-group .led-label-name { font-size: 14px; font-weight: 700; }
+    .led-text-group .led-logic-expr { font-family: var(--mono); font-size: 10px; color: var(--text-muted); }
+    .led-text-group .led-status-text {
+      font-family: var(--mono); font-size: 11px; font-weight: 600;
+      color: var(--text-dim); margin-top: 3px;
+    }
+    .led-output-card.on-sum .led-status-text { color: var(--cyan); }
+    .led-output-card.on-carry .led-status-text { color: var(--amber); }
+
+    /* Live Math Banner */
+    .live-math-stream {
+      margin-top: 14px; padding: 14px 18px; border-radius: var(--radius-sm);
+      background: rgba(0, 212, 255, 0.04); border: 1px solid rgba(0, 212, 255, 0.15);
+    }
+    .math-stream-title {
+      font-size: 10px; font-weight: 700; text-transform: uppercase;
+      letter-spacing: 0.12em; color: var(--cyan); margin-bottom: 6px;
+    }
+    .math-stream-expr { font-family: var(--mono); font-size: 13px; color: var(--text); }
+
+    /* Truth Table */
+    .truth-table-wrapper { margin-top: 24px; }
+    .table-responsive { width: 100%; overflow-x: auto; }
+    
+    table.lab-truth-table {
+      width: 100%; border-collapse: collapse; font-family: var(--mono); font-size: 13px;
+    }
+    table.lab-truth-table th {
+      padding: 12px 16px; text-align: center;
+      background: var(--bg-alt); color: var(--text-muted);
+      font-size: 11px; font-weight: 700; text-transform: uppercase;
+      letter-spacing: 0.1em; border-bottom: 1px solid var(--border);
+    }
+    table.lab-truth-table td {
+      padding: 10px 16px; text-align: center;
+      border-bottom: 1px solid rgba(255,255,255,0.03);
+      color: var(--text-dim); transition: all 0.15s ease;
+    }
+    table.lab-truth-table tr.active-row td {
+      background: rgba(0, 212, 255, 0.12);
+      color: var(--text); font-weight: 700;
+    }
+    table.lab-truth-table tr.active-row td:last-child { color: var(--amber); }
+    table.lab-truth-table tr.active-row td:nth-last-child(2) { color: var(--cyan); }
+
+    td.val-one { color: var(--green) !important; }
+    td.val-zero { color: var(--text-dim) !important; }
+
+    /* Guided Progress Wizard */
+    .guided-progress-panel {
+      margin-top: 20px; padding: 18px 20px; border-radius: var(--radius-md);
+      background: var(--surface); border: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: space-between;
+      gap: 16px; flex-wrap: wrap;
+    }
+    .guided-task-info .guided-task-label {
+      font-size: 10px; font-weight: 700; text-transform: uppercase;
+      letter-spacing: 0.1em; color: var(--amber);
+    }
+    .guided-task-info .guided-task-desc { font-size: 13px; font-weight: 600; color: var(--text); margin-top: 3px; }
+
+    .guided-progress-bar { display: flex; align-items: center; gap: 6px; }
+    .progress-pip {
+      width: 28px; height: 8px; border-radius: 4px;
+      background: var(--bg-alt); border: 1px solid var(--border);
+      transition: all 0.2s ease;
+    }
+    .progress-pip.completed {
+      background: var(--green); border-color: var(--green); box-shadow: 0 0 8px var(--green-glow);
+    }
+    .progress-pip.current {
+      background: var(--cyan); border-color: var(--cyan); box-shadow: 0 0 8px var(--cyan-glow);
+    }
+
+    /* ==========================================================================
+       PAGE 4: DYNAMIC QUESTION PRACTICE & VIVA VOCE
+       ========================================================================== */
+    .assessment-hero {
+      display: flex; align-items: center; justify-content: space-between;
+      gap: 20px; margin-bottom: 24px; flex-wrap: wrap;
+    }
+
+    .score-summary-card {
+      padding: 28px; border-radius: var(--radius-lg); text-align: center;
+      background: var(--surface); border: 1px solid var(--border);
+      margin-bottom: 28px; position: relative; overflow: hidden;
+    }
+    .score-summary-card::before {
+      content: ''; position: absolute; inset: 0;
+      background: radial-gradient(circle at 50% 0%, rgba(16,185,129,0.15) 0%, transparent 60%);
+    }
+
+    .score-display-number {
+      font-family: var(--mono); font-size: 54px; font-weight: 800;
+      color: var(--text); margin: 6px 0;
+    }
+    .score-badge-pill {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 6px 18px; border-radius: 99px; font-size: 12px; font-weight: 700;
+      letter-spacing: 0.08em;
+    }
+    .badge-excellent { background: rgba(245,158,11,0.15); color: var(--amber); border: 1px solid rgba(245,158,11,0.4); }
+    .badge-pass { background: rgba(16,185,129,0.15); color: var(--green); border: 1px solid rgba(16,185,129,0.4); }
+    .badge-review { background: rgba(148,163,184,0.15); color: var(--text-muted); border: 1px solid var(--border); }
+
+    .questions-container { display: flex; flex-direction: column; gap: 14px; }
+
+    .quiz-question-box {
+      padding: 20px; border-radius: var(--radius-md);
+      background: var(--surface); border: 1px solid var(--border);
+      transition: all 0.2s ease;
+    }
+    .quiz-question-box.answered-correct {
+      border-color: rgba(16,185,129,0.4); background: rgba(16,185,129,0.03);
+    }
+    .quiz-question-box.answered-incorrect {
+      border-color: rgba(239,68,68,0.4); background: rgba(239,68,68,0.03);
+    }
+
+    .question-header-meta {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 8px; font-family: var(--mono); font-size: 11px; color: var(--cyan);
+    }
+    .question-stem-text {
+      font-size: 14px; font-weight: 600; line-height: 1.6; margin-bottom: 14px;
+    }
+
+    .question-options-grid {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 8px;
+    }
+    @media(max-width:768px) { .question-options-grid { grid-template-columns: 1fr; } }
+
+    .option-btn {
+      padding: 10px 14px; border-radius: var(--radius-sm);
+      background: var(--bg-alt); border: 1px solid var(--border);
+      color: var(--text-muted); font-size: 12px; font-family: inherit;
+      cursor: pointer; text-align: left; transition: all 0.15s ease;
+    }
+    .option-btn:hover { border-color: rgba(0,212,255,0.3); color: var(--text); }
+    .option-btn.selected {
+      border-color: var(--cyan); background: rgba(0,212,255,0.1); color: var(--cyan); font-weight: 600;
+    }
+    .option-btn.correct-highlight {
+      border-color: var(--green); background: rgba(16,185,129,0.12); color: var(--green); font-weight: 600;
+    }
+    .option-btn.wrong-highlight {
+      border-color: var(--red); background: rgba(239,68,68,0.12); color: var(--red);
+    }
+
+    .explanation-box {
+      margin-top: 10px; padding: 10px 14px; border-radius: 8px;
+      background: rgba(0,212,255,0.05); border: 1px solid rgba(0,212,255,0.15);
+      font-size: 12px; color: var(--cyan); line-height: 1.5; display: none;
+    }
+
+    .comparison-table-card { margin-top: 36px; }
+    table.compare-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    table.compare-table th {
+      padding: 12px 18px; text-align: left; font-size: 11px; text-transform: uppercase;
+      letter-spacing: 0.1em; color: var(--text-muted); border-bottom: 1px solid var(--border);
+    }
+    table.compare-table th.col-half { color: var(--cyan); }
+    table.compare-table th.col-full { color: var(--amber); }
+    table.compare-table td {
+      padding: 12px 18px; border-bottom: 1px solid rgba(255,255,255,0.04); color: var(--text-muted);
+    }
+    table.compare-table td:first-child { color: var(--text); font-weight: 600; }
+
+    .certificate-card {
+      margin-top: 36px; padding: 32px; border-radius: var(--radius-lg);
+      background: linear-gradient(135deg, rgba(0,212,255,0.08), rgba(168,85,247,0.08));
+      border: 1px solid rgba(0,212,255,0.3); text-align: center; display: none;
+    }
+
+    @media(max-width: 1024px) {
+      .workbench-dashboard { grid-template-columns: 1fr; }
+      .theory-grid { grid-template-columns: 1fr; }
+      .gate-symbols-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="tech-bg"></div>
+
+<!-- ==========================================================================
+     INCORRECT CONNECTION & FAULT NOTIFICATION ALERT MODAL
+     ========================================================================== -->
+<div class="alert-modal-backdrop" id="wiring-alert-modal">
+  <div class="alert-modal-box" id="modal-box-theme">
+    
+    <div class="alert-modal-header">
+      <div class="alert-icon-circle" id="alert-modal-icon">⚠️</div>
+      <div>
+        <div class="alert-modal-tag" id="alert-modal-tag">CIRCUIT FAULT NOTIFICATION</div>
+        <h3 class="alert-modal-title" id="alert-modal-title">Incorrect Connection Detected</h3>
+      </div>
+    </div>
+
+    <div class="alert-modal-content">
+      <p id="alert-modal-message">
+        You attempted an invalid electrical connection on the breadboard.
+      </p>
+
+      <div class="alert-modal-fault-code" id="alert-modal-terminals">
+        Terminal Pin A ➔ Terminal Pin B
+      </div>
+
+      <div class="alert-modal-advice" id="alert-modal-hint">
+        💡 Engineering Guideline: Connect the output pin of Switch A to input 1 of the XOR gate.
+      </div>
+    </div>
+
+    <div class="alert-modal-footer">
+      <button class="btn-alert-dismiss" onclick="dismissWiringAlert()">
+        Acknowledge &amp; Try Again
+      </button>
+    </div>
+
+  </div>
+</div>
+
+<!-- ==========================================================================
+     TOP NAVBAR
+     ========================================================================== -->
+<header class="lab-navbar" id="main-navbar">
+  <div class="container nav-container">
+    
+    <div class="brand-box" onclick="navigateTo(1)">
+      <div class="brand-icon-wrapper">⚡</div>
+      <div>
+        <div class="brand-title">
+          Adder Circuit 3D Lab <span class="tag">Virtual Labs</span>
+        </div>
+        <div class="brand-dept">Electronics &amp; Communication Engineering · Digital Logic Design</div>
+      </div>
+    </div>
+
+    <nav class="nav-steps">
+      <button class="step-link" id="nav-btn-1" onclick="navigateTo(1)">
+        <span class="step-num">1</span>
+        <span>Overview</span>
+      </button>
+      <button class="step-link" id="nav-btn-2" onclick="navigateTo(2)">
+        <span class="step-num">2</span>
+        <span>Half Adder 3D</span>
+      </button>
+      <button class="step-link" id="nav-btn-3" onclick="navigateTo(3)">
+        <span class="step-num">3</span>
+        <span>Full Adder 3D</span>
+      </button>
+      <button class="step-link" id="nav-btn-4" onclick="navigateTo(4)">
+        <span class="step-num">4</span>
+        <span>Practice &amp; Viva</span>
+      </button>
+    </nav>
+
+    <div class="nav-actions">
+      <div class="student-badge" id="student-nav-badge">
+        <div class="student-avatar" id="avatar-circle">?</div>
+        <div>
+          <div style="font-weight:700; line-height:1.2;" id="student-name-display">Guest Student</div>
+          <div style="font-size:10px; color:var(--text-dim);" id="student-meta-display">ECE Dept</div>
+        </div>
+      </div>
+      <button class="btn-logout" onclick="performLogout()" title="Exit Lab Session">
+        <span>Logout</span> ⎋
+      </button>
+    </div>
+
+  </div>
+</header>
+
+<!-- ==========================================================================
+     PAGE 0: STUDENT LOGIN & ONBOARDING
+     ========================================================================== -->
+<main class="page-section active" id="page-0">
+  <div class="container login-wrapper">
+    <div class="login-panel">
+      
+      <div class="login-hero">
+        <div class="login-chip">
+          <span class="pulse"></span> Department Virtual Lab Portal
+        </div>
+        <h1 class="login-title">Digital Logic Design Lab</h1>
+        <p class="login-subtitle">Simulation &amp; Verification of Binary Half &amp; Full Adder Circuits</p>
+      </div>
+
+      <div class="login-body">
+        <form onsubmit="event.preventDefault(); handleLoginSubmit();">
+          
+          <div class="form-group">
+            <label class="form-label" for="input-student-name">Student Full Name *</label>
+            <input type="text" id="input-student-name" class="form-input" placeholder="e.g. Vidhi Chavhan" required autocomplete="name"/>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="input-roll-number">Roll Number / Enrollment ID *</label>
+            <input type="text" id="input-roll-number" class="form-input" placeholder="e.g. 21ECE045" required autocomplete="off"/>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label" for="select-dept">Department</label>
+              <select id="select-dept" class="form-select">
+                <option value="ECE">Electronics &amp; Comm. (ECE)</option>
+                <option value="EEE">Electrical &amp; Electronics (EEE)</option>
+                <option value="CSE">Computer Science (CSE)</option>
+                <option value="IT">Information Tech (IT)</option>
+                <option value="MECH">Mechanical Engg.</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="select-sem">Semester</label>
+              <select id="select-sem" class="form-select">
+                <option value="3rd">Semester 3</option>
+                <option value="4th" selected>Semester 4</option>
+                <option value="5th">Semester 5</option>
+                <option value="6th">Semester 6</option>
+              </select>
+            </div>
+          </div>
+
+          <button type="submit" class="btn-enter-lab">
+            <span>Enter 3D Virtual Lab</span> →
+          </button>
+
+          <button type="button" class="btn-quick-demo" onclick="enterGuestMode()">
+            ⚡ 1-Click Fast Guest Demo (For Instant Viva Evaluation)
+          </button>
+
+        </form>
+      </div>
+
+    </div>
+  </div>
+</main>
+
+<!-- ==========================================================================
+     PAGE 1: OVERVIEW & THEORY
+     ========================================================================== -->
+<main class="page-section" id="page-1">
+  <div class="container">
+    
+    <div class="hero-banner">
+      <div class="hero-badge">
+        <span>⚡</span> Electronics &amp; Communication Engineering · Virtual Simulator
+      </div>
+      <h1 class="hero-title">
+        Binary Arithmetic: <span class="glow-text">Half &amp; Full Adder</span>
+      </h1>
+      <p class="hero-desc">
+        Arithmetic logic is the core of modern central processing units (ALUs). Experience binary addition through an interactive, physical 3D breadboard simulation with live logic gates, procedural jumper wiring, and deterministic truth table verification.
+      </p>
+
+      <div class="hero-cta">
+        <button class="btn-cta-primary" onclick="navigateTo(2)">
+          <span>Launch Half Adder 3D Lab</span> →
+        </button>
+        <button class="btn-cta-secondary" onclick="navigateTo(3)">
+          <span>Launch Full Adder 3D Lab</span>
+        </button>
+      </div>
+    </div>
+
+    <div class="theory-grid">
+      <div class="circuit-spec-card">
+        <div class="circuit-spec-header">
+          <span class="circuit-spec-badge badge-half">2 Inputs · 2 Gates</span>
+          <span style="font-size:11px; color:var(--cyan); font-weight:700;">LSB STAGE</span>
+        </div>
+        <h3 class="circuit-spec-title">Half Adder Architecture</h3>
+        <p class="circuit-spec-desc">
+          The Half Adder is a combinational arithmetic circuit that performs addition of two single binary bits (A and B). It produces two outputs: <strong>SUM</strong> (representing the unit bit) and <strong>CARRY</strong> (representing the overflow to the next significant position). It has no provision for an incoming carry bit.
+        </p>
+        <div class="circuit-formula-box">
+          <div class="formula-row-item">
+            <span class="formula-var">Sum Bit:</span>
+            <span class="formula-eq">SUM = A ⊕ B &nbsp;(XOR Gate)</span>
+          </div>
+          <div class="formula-row-item">
+            <span class="formula-var">Carry Bit:</span>
+            <span class="formula-eq">CARRY = A · B &nbsp;(AND Gate)</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="circuit-spec-card">
+        <div class="circuit-spec-header">
+          <span class="circuit-spec-badge badge-full">3 Inputs · 5 Gates</span>
+          <span style="font-size:11px; color:var(--amber); font-weight:700;">CASCADE CAPABLE</span>
+        </div>
+        <h3 class="circuit-spec-title">Full Adder Architecture</h3>
+        <p class="circuit-spec-desc">
+          The Full Adder adds three 1-bit binary values: operands A, B, and a Carry-in (C<sub>in</sub>) generated by the preceding adder stage. Composed of two Half Adders and an OR gate, it allows cascading into multi-bit Parallel Ripple-Carry Adders used in computer arithmetic logic units.
+        </p>
+        <div class="circuit-formula-box">
+          <div class="formula-row-item">
+            <span class="formula-var">Sum Bit:</span>
+            <span class="formula-eq">SUM = A ⊕ B ⊕ C<sub>in</sub></span>
+          </div>
+          <div class="formula-row-item">
+            <span class="formula-var">Carry-Out:</span>
+            <span class="formula-eq">C<sub>out</sub> = (A·B) + (C<sub>in</sub>·(A⊕B))</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="section-header-block" style="margin-top:40px;">
+      <h2 class="section-title">Physical Logic Gate IC Reference</h2>
+    </div>
+
+    <div class="gate-symbols-grid">
+      <div class="gate-symbol-card">
+        <div class="gate-icon-large" style="color:var(--cyan);">⊕</div>
+        <div class="gate-name-label">74LS86 Quad 2-Input XOR</div>
+        <div class="gate-formula-code" style="color:var(--cyan);">Y = A ⊕ B = A'B + AB'</div>
+        <p class="gate-purpose">Outputs HIGH (1) strictly when inputs differ. Used for binary addition without carry.</p>
+      </div>
+      <div class="gate-symbol-card">
+        <div class="gate-icon-large" style="color:var(--amber);">·</div>
+        <div class="gate-name-label">74LS08 Quad 2-Input AND</div>
+        <div class="gate-formula-code" style="color:var(--amber);">Y = A · B</div>
+        <p class="gate-purpose">Outputs HIGH (1) only when all inputs are 1. Detects arithmetic carry generation.</p>
+      </div>
+      <div class="gate-symbol-card">
+        <div class="gate-icon-large" style="color:var(--purple);">+</div>
+        <div class="gate-name-label">74LS32 Quad 2-Input OR</div>
+        <div class="gate-formula-code" style="color:var(--purple);">Y = A + B</div>
+        <p class="gate-purpose">Outputs HIGH (1) if at least one input is 1. Combines carry paths in Full Adder.</p>
+      </div>
+    </div>
+
+  </div>
+</main>
+
+<!-- ==========================================================================
+     PAGE 2: HALF ADDER 3D INTERACTIVE WORKBENCH & WIRING
+     ========================================================================== -->
+<main class="page-section" id="page-2">
+  <div class="container">
+    
+    <div class="workbench-header">
+      <div>
+        <div class="workbench-heading-title">
+          <span>Half Adder 3D Laboratory</span>
+          <span class="circuit-spec-badge badge-half">2-Bit Input Bench</span>
+        </div>
+        <p class="workbench-heading-desc">
+          Interactive breadboard circuit: Wire component pins, detect faults, and flip switches in 3D to observe logic propagation.
+        </p>
+      </div>
+
+      <div class="workbench-action-toolbar">
+        <button class="tool-btn primary" onclick="autoWireReference('half')">
+          <span>⚡ Auto-Wire Reference</span>
+        </button>
+        <button class="tool-btn danger" onclick="clearAllWires('half')">
+          <span>✂️ Clear Wires</span>
+        </button>
+        <button class="tool-btn" id="btn-autocycle-half" onclick="toggleAutoSequence('half')">
+          <span>▶ Auto Cycle States</span>
+        </button>
+        <button class="tool-btn" id="btn-schematic-half" onclick="toggleSchematicView('half')">
+          <span>⎇ 2D Schematic View</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Wiring Mode & Status Strip -->
+    <div class="wiring-status-strip state-incomplete" id="wiring-strip-half">
+      <div class="wiring-guide-left">
+        <span class="wiring-mode-pill pill-manual" id="wiring-pill-half">WIRING REQUIRED</span>
+        <div>
+          <div class="wiring-instructions-text" id="wiring-task-half">
+            👉 Task: Connect Switch A to XOR Input 1 (Click terminal pins in 3D or use the connector panel below).
+          </div>
+          <div class="wiring-instructions-sub" id="wiring-sub-half">
+            Rule: Connect Output pins to Input pins. Output-to-Output or Input-to-Input short circuits will trigger an alert.
+          </div>
+        </div>
+      </div>
+      <div class="wiring-progress-counter">
+        <span style="color:var(--text-muted); font-size:11px;">JUMPERS:</span>
+        <span id="wire-counter-half" style="color:var(--amber);">0 / 6 Connected</span>
+      </div>
+    </div>
+
+    <!-- 3D Viewport Box -->
+    <div class="viewport-container" id="viewport-half">
+      <div class="viewport-hud">
+        <div class="hud-tag">
+          <span class="dot"></span>
+          <span>3D Breadboard Circuit Simulation</span>
+        </div>
+        <div class="hud-hint">
+          🖱 Left Click: Orbit · Scroll: Zoom · Click Pins to Wire · Click Switches to Toggle
+        </div>
+      </div>
+
+      <div class="pin-selection-banner" id="pin-banner-half" style="display:none;">
+        <span id="pin-banner-text-half">Pin Selected: Click Destination Pin</span>
+      </div>
+
+      <div class="viewport-camera-toolbar">
+        <button class="cam-btn active" onclick="setCameraView('half', 'iso')">Perspective</button>
+        <button class="cam-btn" onclick="setCameraView('half', 'top')">Top View</button>
+        <button class="cam-btn" onclick="setCameraView('half', 'front')">Front Angle</button>
+        <button class="cam-btn" onclick="resetCameraView('half')">↺ Reset</button>
+      </div>
+
+      <!-- 2D Schematic Overlay -->
+      <div class="schematic-overlay" id="schematic-half-overlay">
+        <div class="schematic-svg-container">
+          <svg viewBox="0 0 600 320" width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
+            <style>
+              .sch-line { stroke: #64748b; stroke-width: 3; fill: none; }
+              .sch-gate { fill: #0f1c30; stroke: #00d4ff; stroke-width: 2.5; }
+              .sch-text { fill: #f1f5f9; font-family: 'JetBrains Mono', monospace; font-size: 13px; font-weight: 600; }
+              .sch-term { fill: #00d4ff; }
+            </style>
+            <text x="40" y="95" class="sch-text">A</text>
+            <text x="40" y="215" class="sch-text">B</text>
+            <circle cx="65" cy="90" r="5" class="sch-term"/>
+            <circle cx="65" cy="210" r="5" class="sch-term"/>
+            <path d="M 65 90 L 220 90" class="sch-line"/>
+            <path d="M 65 210 L 140 210 L 140 120 L 220 120" class="sch-line"/>
+            <path d="M 110 90 L 110 200 L 220 200" class="sch-line"/>
+            <circle cx="110" cy="90" r="4" fill="#00d4ff"/>
+            <path d="M 140 210 L 220 210" class="sch-line"/>
+            <circle cx="140" cy="210" r="4" fill="#00d4ff"/>
+            <path d="M 220 75 Q 240 105 220 135 L 250 135 Q 295 105 250 75 Z" class="sch-gate"/>
+            <path d="M 210 75 Q 230 105 210 135" stroke="#00d4ff" stroke-width="2.5" fill="none"/>
+            <text x="235" y="110" class="sch-text" font-size="11">XOR</text>
+            <path d="M 220 185 L 250 185 A 25 25 0 0 1 250 235 L 220 235 Z" class="sch-gate" stroke="#f59e0b"/>
+            <text x="235" y="215" class="sch-text" font-size="11">AND</text>
+            <path d="M 285 105 L 450 105" class="sch-line"/>
+            <circle cx="455" cy="105" r="7" fill="#17283c" stroke="#00d4ff" stroke-width="2"/>
+            <text x="475" y="110" class="sch-text" fill="#00d4ff">SUM (A ⊕ B)</text>
+            <path d="M 275 210 L 450 210" class="sch-line"/>
+            <circle cx="455" cy="210" r="7" fill="#17283c" stroke="#f59e0b" stroke-width="2"/>
+            <text x="475" y="215" class="sch-text" fill="#f59e0b">CARRY (A · B)</text>
+          </svg>
+        </div>
+      </div>
+
+      <canvas class="canvas-3d-target" id="canvas-half"></canvas>
+    </div>
+
+    <!-- Quick Terminal Connector Panel -->
+    <div class="quick-wiring-bar">
+      <div class="quick-wiring-label">Manual Wire Connector:</div>
+      <div class="pin-dropdown-group">
+        <label style="font-size:11px; color:var(--text-muted);">From Terminal:</label>
+        <select class="pin-select-box" id="select-half-from">
+          <option value="sw_a">Switch A [OUTPUT]</option>
+          <option value="sw_b">Switch B [OUTPUT]</option>
+          <option value="xor1_out">74LS86 XOR Output [OUTPUT]</option>
+          <option value="and1_out">74LS08 AND Output [OUTPUT]</option>
+          <option value="xor1_in1">XOR Input 1 [INPUT]</option>
+          <option value="xor1_in2">XOR Input 2 [INPUT]</option>
+          <option value="and1_in1">AND Input 1 [INPUT]</option>
+          <option value="and1_in2">AND Input 2 [INPUT]</option>
+          <option value="led_sum">SUM LED [INPUT]</option>
+          <option value="led_carry">CARRY LED [INPUT]</option>
+        </select>
+
+        <span style="color:var(--cyan); font-weight:700;">➔</span>
+
+        <label style="font-size:11px; color:var(--text-muted);">To Terminal:</label>
+        <select class="pin-select-box" id="select-half-to">
+          <option value="xor1_in1" selected>XOR Input 1 [INPUT]</option>
+          <option value="xor1_in2">XOR Input 2 [INPUT]</option>
+          <option value="and1_in1">AND Input 1 [INPUT]</option>
+          <option value="and1_in2">AND Input 2 [INPUT]</option>
+          <option value="led_sum">SUM LED [INPUT]</option>
+          <option value="led_carry">CARRY LED [INPUT]</option>
+          <option value="sw_a">Switch A [OUTPUT]</option>
+          <option value="sw_b">Switch B [OUTPUT]</option>
+          <option value="xor1_out">74LS86 XOR Output [OUTPUT]</option>
+          <option value="and1_out">74LS08 AND Output [OUTPUT]</option>
+        </select>
+
+        <button class="btn-connect-wire" onclick="connectFromSelect('half')">
+          + Connect Jumper Wire
+        </button>
+      </div>
+    </div>
+
+    <!-- Live Math Equation Stream -->
+    <div class="live-math-stream">
+      <div class="math-stream-title">Real-Time Deterministic Output Evaluation</div>
+      <div class="math-stream-expr" id="math-eval-half">
+        SUM = 0 ⊕ 0 = 0 &nbsp;&nbsp;|&nbsp;&nbsp; CARRY = 0 · 0 = 0
+      </div>
+    </div>
+
+    <!-- Workbench Controls Dashboard -->
+    <div class="workbench-dashboard">
+      <div class="glass-card">
+        <div class="glass-card-header">
+          <span style="color:var(--cyan);">Binary Input Switches</span>
+          <span class="mono" style="font-size:10px;">TTL LEVEL</span>
+        </div>
+        <div class="glass-card-body">
+          <div class="switch-card-item" id="sw-half-a" onclick="toggleInput('a')">
+            <div class="switch-info-group">
+              <div class="switch-title">Switch A</div>
+              <div class="switch-subtitle">Primary Operand Bit</div>
+            </div>
+            <div class="switch-toggle-assembly">
+              <div class="switch-numeric-val" id="num-half-a">0</div>
+              <div class="switch-track-pill"><div class="switch-thumb-circle"></div></div>
+            </div>
+          </div>
+
+          <div class="switch-card-item" id="sw-half-b" onclick="toggleInput('b')">
+            <div class="switch-info-group">
+              <div class="switch-title">Switch B</div>
+              <div class="switch-subtitle">Secondary Operand Bit</div>
+            </div>
+            <div class="switch-toggle-assembly">
+              <div class="switch-numeric-val" id="num-half-b">0</div>
+              <div class="switch-track-pill"><div class="switch-thumb-circle"></div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="glass-card">
+        <div class="glass-card-header">
+          <span style="color:var(--text);">Internal IC Gate Propagation</span>
+          <span class="mono" style="font-size:10px;">MONITOR</span>
+        </div>
+        <div class="glass-card-body">
+          <div class="gate-states-grid">
+            <div class="gate-mini-card" id="gate-card-h-xor">
+              <div class="gate-tag-row">
+                <span>74LS86 XOR</span>
+                <span class="gate-mini-dot" style="background:var(--cyan);"></span>
+              </div>
+              <div class="gate-mini-formula">Y = A ⊕ B</div>
+              <div class="gate-big-state" id="val-gate-h-xor">0</div>
+              <div class="gate-mini-role">Generates Partial Sum</div>
+            </div>
+
+            <div class="gate-mini-card" id="gate-card-h-and">
+              <div class="gate-tag-row">
+                <span>74LS08 AND</span>
+                <span class="gate-mini-dot" style="background:var(--amber);"></span>
+              </div>
+              <div class="gate-mini-formula">Y = A · B</div>
+              <div class="gate-big-state" id="val-gate-h-and">0</div>
+              <div class="gate-mini-role">Generates Carry Bit</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="glass-card">
+        <div class="glass-card-header">
+          <span style="color:var(--amber);">Physical Output LEDs</span>
+          <span class="mono" style="font-size:10px;">INDICATORS</span>
+        </div>
+        <div class="glass-card-body">
+          <div class="led-output-card" id="led-card-h-sum">
+            <div class="led-dome-fixture"></div>
+            <div class="led-text-group">
+              <div class="led-label-name">SUM (S)</div>
+              <div class="led-logic-expr">Pin Y₁ → XOR Output</div>
+              <div class="led-status-text" id="status-h-sum">LOW (0 V)</div>
+            </div>
+          </div>
+
+          <div class="led-output-card" id="led-card-h-carry">
+            <div class="led-dome-fixture"></div>
+            <div class="led-text-group">
+              <div class="led-label-name">CARRY (C)</div>
+              <div class="led-logic-expr">Pin Y₂ → AND Output</div>
+              <div class="led-status-text" id="status-h-carry">LOW (0 V)</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Truth Table -->
+    <div class="truth-table-wrapper glass-card">
+      <div class="glass-card-header">
+        <span style="color:var(--green);">Deterministic Truth Table Verification</span>
+        <span class="mono" style="font-size:10px; color:var(--text-muted);" id="table-status-half">CIRCUIT ACTIVE</span>
+      </div>
+      <div class="table-responsive">
+        <table class="lab-truth-table" id="table-half">
+          <thead>
+            <tr>
+              <th>Row #</th>
+              <th>Input A</th>
+              <th>Input B</th>
+              <th style="color:var(--cyan);">SUM (A ⊕ B)</th>
+              <th style="color:var(--amber);">CARRY (A · B)</th>
+              <th>Decimal Equivalent</th>
+              <th>Circuit Operational State</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr data-row-half="0">
+              <td>0</td><td class="val-zero">0</td><td class="val-zero">0</td>
+              <td class="val-zero">0</td><td class="val-zero">0</td>
+              <td>0 + 0 = 0</td><td><span class="mono" style="color:var(--cyan);">00₂</span></td>
+            </tr>
+            <tr data-row-half="1">
+              <td>1</td><td class="val-zero">0</td><td class="val-one">1</td>
+              <td class="val-one">1</td><td class="val-zero">0</td>
+              <td>0 + 1 = 1</td><td><span class="mono" style="color:var(--cyan);">01₂</span></td>
+            </tr>
+            <tr data-row-half="2">
+              <td>2</td><td class="val-one">1</td><td class="val-zero">0</td>
+              <td class="val-one">1</td><td class="val-zero">0</td>
+              <td>1 + 0 = 1</td><td><span class="mono" style="color:var(--cyan);">01₂</span></td>
+            </tr>
+            <tr data-row-half="3">
+              <td>3</td><td class="val-one">1</td><td class="val-one">1</td>
+              <td class="val-zero">0</td><td class="val-one">1</td>
+              <td>1 + 1 = 2</td><td><span class="mono" style="color:var(--amber);">10₂ (Carry Generated)</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="guided-progress-panel">
+      <div class="guided-task-info">
+        <div class="guided-task-label">Guided Lab Procedure</div>
+        <div class="guided-task-desc" id="guide-text-half">
+          Step: Connect all 6 jumpers to enable circuit operation.
+        </div>
+      </div>
+      <div class="guided-progress-bar">
+        <div class="progress-pip" id="pip-h-0"></div>
+        <div class="progress-pip" id="pip-h-1"></div>
+        <div class="progress-pip" id="pip-h-2"></div>
+        <div class="progress-pip" id="pip-h-3"></div>
+      </div>
+    </div>
+
+  </div>
+</main>
+
+<!-- ==========================================================================
+     PAGE 3: FULL ADDER 3D INTERACTIVE WORKBENCH & WIRING
+     ========================================================================== -->
+<main class="page-section" id="page-3">
+  <div class="container">
+    
+    <div class="workbench-header">
+      <div>
+        <div class="workbench-heading-title">
+          <span>Full Adder 3D Laboratory</span>
+          <span class="circuit-spec-badge badge-full">3-Bit Multi-Stage Bench</span>
+        </div>
+        <p class="workbench-heading-desc">
+          Models 2 XOR, 2 AND, and 1 OR gate with Carry-in (C<sub>in</sub>) propagation delay simulation.
+        </p>
+      </div>
+
+      <div class="workbench-action-toolbar">
+        <button class="tool-btn primary" onclick="autoWireReference('full')">
+          <span>⚡ Auto-Wire Reference</span>
+        </button>
+        <button class="tool-btn danger" onclick="clearAllWires('full')">
+          <span>✂️ Clear Wires</span>
+        </button>
+        <button class="tool-btn" id="btn-autocycle-full" onclick="toggleAutoSequence('full')">
+          <span>▶ Auto Cycle States</span>
+        </button>
+        <button class="tool-btn" id="btn-schematic-full" onclick="toggleSchematicView('full')">
+          <span>⎇ 2D Schematic View</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Wiring Mode & Status Strip -->
+    <div class="wiring-status-strip state-incomplete" id="wiring-strip-full">
+      <div class="wiring-guide-left">
+        <span class="wiring-mode-pill pill-manual" id="wiring-pill-full">WIRING REQUIRED</span>
+        <div>
+          <div class="wiring-instructions-text" id="wiring-task-full">
+            👉 Task: Connect inputs A, B, and Cin to the logic network (12 jumpers required).
+          </div>
+          <div class="wiring-instructions-sub" id="wiring-sub-full">
+            Click pins in the 3D scene or select from the dropdown below to place jumpers.
+          </div>
+        </div>
+      </div>
+      <div class="wiring-progress-counter">
+        <span style="color:var(--text-muted); font-size:11px;">JUMPERS:</span>
+        <span id="wire-counter-full" style="color:var(--amber);">0 / 12 Connected</span>
+      </div>
+    </div>
+
+    <!-- 3D Viewport Box -->
+    <div class="viewport-container" id="viewport-full">
+      <div class="viewport-hud">
+        <div class="hud-tag">
+          <span class="dot" style="background:var(--amber); box-shadow:0 0 8px var(--amber);"></span>
+          <span>Full Adder 3D Breadboard Simulator</span>
+        </div>
+        <div class="hud-hint">
+          🖱 Left Click: Orbit · Scroll: Zoom · Click Pins to Wire · Click Switches to Toggle
+        </div>
+      </div>
+
+      <div class="pin-selection-banner" id="pin-banner-full" style="display:none;">
+        <span id="pin-banner-text-full">Pin Selected: Click Destination Pin</span>
+      </div>
+
+      <div class="viewport-camera-toolbar">
+        <button class="cam-btn active" onclick="setCameraView('full', 'iso')">Perspective</button>
+        <button class="cam-btn" onclick="setCameraView('full', 'top')">Top View</button>
+        <button class="cam-btn" onclick="setCameraView('full', 'front')">Front Angle</button>
+        <button class="cam-btn" onclick="resetCameraView('full')">↺ Reset</button>
+      </div>
+
+      <div class="schematic-overlay" id="schematic-full-overlay">
+        <div class="schematic-svg-container">
+          <svg viewBox="0 0 700 360" width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
+            <style>
+              .f-wire { stroke: #64748b; stroke-width: 3; fill: none; }
+              .f-gate { fill: #0f1c30; stroke: #00d4ff; stroke-width: 2.5; }
+              .f-text { fill: #f1f5f9; font-family: 'JetBrains Mono', monospace; font-size: 13px; font-weight: 600; }
+            </style>
+            <text x="30" y="70" class="f-text">A</text>
+            <text x="30" y="140" class="f-text">B</text>
+            <text x="30" y="240" class="f-text">Cin</text>
+            <circle cx="60" cy="65" r="5" fill="#00d4ff"/>
+            <circle cx="60" cy="135" r="5" fill="#00d4ff"/>
+            <circle cx="60" cy="235" r="5" fill="#10b981"/>
+            <path d="M 60 65 L 180 65" class="f-wire"/>
+            <path d="M 60 135 L 120 135 L 120 95 L 180 95" class="f-wire"/>
+            <path d="M 180 50 Q 200 80 180 110 L 210 110 Q 255 80 210 50 Z" class="f-gate"/>
+            <path d="M 170 50 Q 190 80 170 110" stroke="#00d4ff" stroke-width="2.5" fill="none"/>
+            <text x="195" y="85" class="f-text" font-size="11">XOR₁</text>
+            <path d="M 90 65 L 90 170 L 180 170" class="f-wire"/>
+            <circle cx="90" cy="65" r="4" fill="#00d4ff"/>
+            <path d="M 120 135 L 120 200 L 180 200" class="f-wire"/>
+            <circle cx="120" cy="135" r="4" fill="#00d4ff"/>
+            <path d="M 180 155 L 210 155 A 25 25 0 0 1 210 215 L 180 215 Z" class="f-gate" stroke="#f59e0b"/>
+            <text x="195" y="190" class="f-text" font-size="11">AND₁</text>
+            <path d="M 245 80 L 360 80" class="f-wire"/>
+            <text x="280" y="70" class="f-text" font-size="11" fill="#00d4ff">X₁</text>
+            <path d="M 60 235 L 300 235 L 300 110 L 360 110" class="f-wire"/>
+            <circle cx="300" cy="235" r="4" fill="#10b981"/>
+            <path d="M 360 65 Q 380 95 360 125 L 390 125 Q 435 95 390 65 Z" class="f-gate"/>
+            <path d="M 350 65 Q 370 95 350 125" stroke="#00d4ff" stroke-width="2.5" fill="none"/>
+            <text x="375" y="100" class="f-text" font-size="11">XOR₂</text>
+            <path d="M 270 80 L 270 170 L 360 170" class="f-wire"/>
+            <circle cx="270" cy="80" r="4" fill="#00d4ff"/>
+            <path d="M 300 235 L 300 200 L 360 200" class="f-wire"/>
+            <path d="M 360 155 L 390 155 A 25 25 0 0 1 390 215 L 360 215 Z" class="f-gate" stroke="#f59e0b"/>
+            <text x="375" y="190" class="f-text" font-size="11">AND₂</text>
+            <path d="M 235 185 L 500 185 L 500 220 L 520 220" class="f-wire"/>
+            <path d="M 415 185 L 460 185 L 460 240 L 520 240" class="f-wire"/>
+            <path d="M 520 205 Q 540 230 520 255 L 550 255 Q 590 230 550 205 Z" class="f-gate" stroke="#a855f7"/>
+            <text x="535" y="235" class="f-text" font-size="11">OR</text>
+            <path d="M 425 95 L 600 95" class="f-wire"/>
+            <circle cx="605" cy="95" r="7" fill="#00d4ff"/>
+            <text x="625" y="100" class="f-text" fill="#00d4ff">SUM</text>
+            <path d="M 580 230 L 600 230" class="f-wire"/>
+            <circle cx="605" cy="230" r="7" fill="#f59e0b"/>
+            <text x="625" y="235" class="f-text" fill="#f59e0b">CARRY</text>
+          </svg>
+        </div>
+      </div>
+
+      <canvas class="canvas-3d-target" id="canvas-full"></canvas>
+    </div>
+
+    <!-- Quick Terminal Connector Panel -->
+    <div class="quick-wiring-bar">
+      <div class="quick-wiring-label">Manual Wire Connector:</div>
+      <div class="pin-dropdown-group">
+        <label style="font-size:11px; color:var(--text-muted);">From Terminal:</label>
+        <select class="pin-select-box" id="select-full-from">
+          <option value="sw_a">Switch A [OUTPUT]</option>
+          <option value="sw_b">Switch B [OUTPUT]</option>
+          <option value="sw_cin">Switch Cin [OUTPUT]</option>
+          <option value="xor1_out">XOR₁ Output (X1) [OUTPUT]</option>
+          <option value="and1_out">AND₁ Output (C1) [OUTPUT]</option>
+          <option value="xor2_out">XOR₂ Output (SUM) [OUTPUT]</option>
+          <option value="and2_out">AND₂ Output (C2) [OUTPUT]</option>
+          <option value="or1_out">OR Output (Cout) [OUTPUT]</option>
+          <option value="xor1_in1">XOR₁ Input 1 [INPUT]</option>
+          <option value="xor1_in2">XOR₁ Input 2 [INPUT]</option>
+          <option value="and1_in1">AND₁ Input 1 [INPUT]</option>
+          <option value="and1_in2">AND₁ Input 2 [INPUT]</option>
+          <option value="xor2_in1">XOR₂ Input 1 [INPUT]</option>
+          <option value="xor2_in2">XOR₂ Input 2 [INPUT]</option>
+          <option value="and2_in1">AND₂ Input 1 [INPUT]</option>
+          <option value="and2_in2">AND₂ Input 2 [INPUT]</option>
+          <option value="or1_in1">OR Input 1 [INPUT]</option>
+          <option value="or1_in2">OR Input 2 [INPUT]</option>
+          <option value="led_sum">SUM LED [INPUT]</option>
+          <option value="led_carry">CARRY LED [INPUT]</option>
+        </select>
+
+        <span style="color:var(--amber); font-weight:700;">➔</span>
+
+        <label style="font-size:11px; color:var(--text-muted);">To Terminal:</label>
+        <select class="pin-select-box" id="select-full-to">
+          <option value="xor1_in1" selected>XOR₁ Input 1 [INPUT]</option>
+          <option value="xor1_in2">XOR₁ Input 2 [INPUT]</option>
+          <option value="and1_in1">AND₁ Input 1 [INPUT]</option>
+          <option value="and1_in2">AND₁ Input 2 [INPUT]</option>
+          <option value="xor2_in1">XOR₂ Input 1 [INPUT]</option>
+          <option value="xor2_in2">XOR₂ Input 2 [INPUT]</option>
+          <option value="and2_in1">AND₂ Input 1 [INPUT]</option>
+          <option value="and2_in2">AND₂ Input 2 [INPUT]</option>
+          <option value="or1_in1">OR Input 1 [INPUT]</option>
+          <option value="or1_in2">OR Input 2 [INPUT]</option>
+          <option value="led_sum">SUM LED [INPUT]</option>
+          <option value="led_carry">CARRY LED [INPUT]</option>
+        </select>
+
+        <button class="btn-connect-wire" onclick="connectFromSelect('full')">
+          + Connect Jumper Wire
+        </button>
+      </div>
+    </div>
+
+    <!-- Live Math Equation Stream -->
+    <div class="live-math-stream" style="border-color:rgba(245,158,11,0.2); background:rgba(245,158,11,0.04);">
+      <div class="math-stream-title" style="color:var(--amber);">Full Adder Boolean Propagation Solver</div>
+      <div class="math-stream-expr" id="math-eval-full">
+        X₁ = A ⊕ B = 0 &nbsp;|&nbsp; SUM = X₁ ⊕ C<sub>in</sub> = 0 &nbsp;|&nbsp; CARRY = C₁ + C₂ = 0
+      </div>
+    </div>
+
+    <!-- Workbench Interactive Dashboard -->
+    <div class="workbench-dashboard">
+      <div class="glass-card">
+        <div class="glass-card-header">
+          <span style="color:var(--amber);">3-Bit Logic Inputs</span>
+          <span class="mono" style="font-size:10px;">TTL LEVEL</span>
+        </div>
+        <div class="glass-card-body">
+          <div class="switch-card-item" id="sw-full-a" onclick="toggleInput('a')">
+            <div class="switch-info-group">
+              <div class="switch-title">Switch A</div>
+              <div class="switch-subtitle">Operand Bit A</div>
+            </div>
+            <div class="switch-toggle-assembly">
+              <div class="switch-numeric-val" id="num-full-a">0</div>
+              <div class="switch-track-pill"><div class="switch-thumb-circle"></div></div>
+            </div>
+          </div>
+
+          <div class="switch-card-item" id="sw-full-b" onclick="toggleInput('b')">
+            <div class="switch-info-group">
+              <div class="switch-title">Switch B</div>
+              <div class="switch-subtitle">Operand Bit B</div>
+            </div>
+            <div class="switch-toggle-assembly">
+              <div class="switch-numeric-val" id="num-full-b">0</div>
+              <div class="switch-track-pill"><div class="switch-thumb-circle"></div></div>
+            </div>
+          </div>
+
+          <div class="switch-card-item" id="sw-full-cin" onclick="toggleInput('cin')">
+            <div class="switch-info-group">
+              <div class="switch-title">Switch C<sub>in</sub></div>
+              <div class="switch-subtitle">Previous Carry-In Bit</div>
+            </div>
+            <div class="switch-toggle-assembly">
+              <div class="switch-numeric-val" id="num-full-cin">0</div>
+              <div class="switch-track-pill"><div class="switch-thumb-circle"></div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="glass-card">
+        <div class="glass-card-header">
+          <span style="color:var(--text);">5-Gate TTL Network Monitor</span>
+          <span class="mono" style="font-size:10px;">STAGE OUTPUTS</span>
+        </div>
+        <div class="glass-card-body">
+          <div class="gate-states-grid">
+            <div class="gate-mini-card" id="gate-card-f-xor1">
+              <div class="gate-tag-row">
+                <span>XOR₁ (7486)</span>
+                <span class="gate-mini-dot" style="background:var(--cyan);"></span>
+              </div>
+              <div class="gate-mini-formula">X₁ = A ⊕ B</div>
+              <div class="gate-big-state" id="val-gate-f-xor1">0</div>
+              <div class="gate-mini-role">Partial Sum</div>
+            </div>
+
+            <div class="gate-mini-card" id="gate-card-f-xor2">
+              <div class="gate-tag-row">
+                <span>XOR₂ (7486)</span>
+                <span class="gate-mini-dot" style="background:var(--cyan);"></span>
+              </div>
+              <div class="gate-mini-formula">S = X₁ ⊕ C<sub>in</sub></div>
+              <div class="gate-big-state" id="val-gate-f-xor2">0</div>
+              <div class="gate-mini-role">Final Sum Bit</div>
+            </div>
+
+            <div class="gate-mini-card" id="gate-card-f-and1">
+              <div class="gate-tag-row">
+                <span>AND₁ (7408)</span>
+                <span class="gate-mini-dot" style="background:var(--amber);"></span>
+              </div>
+              <div class="gate-mini-formula">C₁ = A · B</div>
+              <div class="gate-big-state" id="val-gate-f-and1">0</div>
+              <div class="gate-mini-role">Primary Carry</div>
+            </div>
+
+            <div class="gate-mini-card" id="gate-card-f-and2">
+              <div class="gate-tag-row">
+                <span>AND₂ (7408)</span>
+                <span class="gate-mini-dot" style="background:var(--amber);"></span>
+              </div>
+              <div class="gate-mini-formula">C₂ = X₁ · C<sub>in</sub></div>
+              <div class="gate-big-state" id="val-gate-f-and2">0</div>
+              <div class="gate-mini-role">Propagated Carry</div>
+            </div>
+
+            <div class="gate-mini-card" id="gate-card-f-or">
+              <div class="gate-tag-row">
+                <span>OR (7432)</span>
+                <span class="gate-mini-dot" style="background:var(--purple);"></span>
+              </div>
+              <div class="gate-mini-formula">C<sub>out</sub> = C₁ + C₂</div>
+              <div class="gate-big-state" id="val-gate-f-or">0</div>
+              <div class="gate-mini-role">Final Carry-Out</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="glass-card">
+        <div class="glass-card-header">
+          <span style="color:var(--amber);">Physical Output LEDs</span>
+          <span class="mono" style="font-size:10px;">INDICATORS</span>
+        </div>
+        <div class="glass-card-body">
+          <div class="led-output-card" id="led-card-f-sum">
+            <div class="led-dome-fixture"></div>
+            <div class="led-text-group">
+              <div class="led-label-name">SUM (S)</div>
+              <div class="led-logic-expr">A ⊕ B ⊕ C<sub>in</sub></div>
+              <div class="led-status-text" id="status-f-sum">LOW (0 V)</div>
+            </div>
+          </div>
+
+          <div class="led-output-card" id="led-card-f-carry">
+            <div class="led-dome-fixture"></div>
+            <div class="led-text-group">
+              <div class="led-label-name">CARRY-OUT (C<sub>out</sub>)</div>
+              <div class="led-logic-expr">C₁ + C₂</div>
+              <div class="led-status-text" id="status-f-carry">LOW (0 V)</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Truth Table -->
+    <div class="truth-table-wrapper glass-card">
+      <div class="glass-card-header">
+        <span style="color:var(--green);">Full Adder 8-State Truth Table Verification</span>
+        <span class="mono" style="font-size:10px; color:var(--text-muted);" id="table-status-full">CIRCUIT ACTIVE</span>
+      </div>
+      <div class="table-responsive">
+        <table class="lab-truth-table" id="table-full">
+          <thead>
+            <tr>
+              <th>Row</th>
+              <th>A</th>
+              <th>B</th>
+              <th>C<sub>in</sub></th>
+              <th style="color:var(--cyan);">SUM</th>
+              <th style="color:var(--amber);">C<sub>out</sub></th>
+              <th>Arithmetic Operation</th>
+              <th>Binary Representation</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr data-row-full="0">
+              <td>0</td><td class="val-zero">0</td><td class="val-zero">0</td><td class="val-zero">0</td>
+              <td class="val-zero">0</td><td class="val-zero">0</td>
+              <td>0 + 0 + 0 = 0</td><td><span class="mono">00₂</span></td>
+            </tr>
+            <tr data-row-full="1">
+              <td>1</td><td class="val-zero">0</td><td class="val-zero">0</td><td class="val-one">1</td>
+              <td class="val-one">1</td><td class="val-zero">0</td>
+              <td>0 + 0 + 1 = 1</td><td><span class="mono">01₂</span></td>
+            </tr>
+            <tr data-row-full="2">
+              <td>2</td><td class="val-zero">0</td><td class="val-one">1</td><td class="val-zero">0</td>
+              <td class="val-one">1</td><td class="val-zero">0</td>
+              <td>0 + 1 + 0 = 1</td><td><span class="mono">01₂</span></td>
+            </tr>
+            <tr data-row-full="3">
+              <td>3</td><td class="val-zero">0</td><td class="val-one">1</td><td class="val-one">1</td>
+              <td class="val-zero">0</td><td class="val-one">1</td>
+              <td>0 + 1 + 1 = 2</td><td><span class="mono" style="color:var(--amber);">10₂ (Carry)</span></td>
+            </tr>
+            <tr data-row-full="4">
+              <td>4</td><td class="val-one">1</td><td class="val-zero">0</td><td class="val-zero">0</td>
+              <td class="val-one">1</td><td class="val-zero">0</td>
+              <td>1 + 0 + 0 = 1</td><td><span class="mono">01₂</span></td>
+            </tr>
+            <tr data-row-full="5">
+              <td>5</td><td class="val-one">1</td><td class="val-zero">0</td><td class="val-one">1</td>
+              <td class="val-zero">0</td><td class="val-one">1</td>
+              <td>1 + 0 + 1 = 2</td><td><span class="mono" style="color:var(--amber);">10₂ (Carry)</span></td>
+            </tr>
+            <tr data-row-full="6">
+              <td>6</td><td class="val-one">1</td><td class="val-one">1</td><td class="val-zero">0</td>
+              <td class="val-zero">0</td><td class="val-one">1</td>
+              <td>1 + 1 + 0 = 2</td><td><span class="mono" style="color:var(--amber);">10₂ (Carry)</span></td>
+            </tr>
+            <tr data-row-full="7">
+              <td>7</td><td class="val-one">1</td><td class="val-one">1</td><td class="val-one">1</td>
+              <td class="val-one">1</td><td class="val-one">1</td>
+              <td>1 + 1 + 1 = 3</td><td><span class="mono" style="color:#f43f5e;">11₂ (Sum &amp; Carry)</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="guided-progress-panel">
+      <div class="guided-task-info">
+        <div class="guided-task-label">Guided Lab Procedure</div>
+        <div class="guided-task-desc" id="guide-text-full">
+          Step: Connect all 12 jumpers to enable 3-bit arithmetic operation.
+        </div>
+      </div>
+      <div class="guided-progress-bar">
+        <div class="progress-pip" id="pip-f-0"></div>
+        <div class="progress-pip" id="pip-f-1"></div>
+        <div class="progress-pip" id="pip-f-2"></div>
+        <div class="progress-pip" id="pip-f-3"></div>
+        <div class="progress-pip" id="pip-f-4"></div>
+        <div class="progress-pip" id="pip-f-5"></div>
+        <div class="progress-pip" id="pip-f-6"></div>
+        <div class="progress-pip" id="pip-f-7"></div>
+      </div>
+    </div>
+
+  </div>
+</main>
+
+<!-- ==========================================================================
+     PAGE 4: DYNAMIC QUESTION PRACTICE & VIVA VOCE (Randomized Question Bank)
+     ========================================================================== -->
+<main class="page-section" id="page-4">
+  <div class="container">
+    
+    <div class="assessment-hero">
+      <div>
+        <h1 style="font-size:28px; font-weight:800; letter-spacing:-0.02em;">
+          Practice Questions &amp; Viva Voce Assessment
+        </h1>
+        <p style="color:var(--text-muted); font-size:13px; margin-top:4px;">
+          Dynamic engineering questions randomized on every attempt. Immediate scoring, rationale cards, and certificate generated.
+        </p>
+      </div>
+
+      <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
+        <button class="tool-btn primary" onclick="submitAssessmentQuiz()" id="btn-submit-quiz">
+          <span>✓ Evaluate Answers</span>
+        </button>
+        <button class="tool-btn" onclick="generateNewQuizBatch()">
+          <span>↺ Generate New Random Questions</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Active Batch Notice -->
+    <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:18px; padding:10px 16px; border-radius:8px; background:var(--surface); border:1px solid var(--border);">
+      <div style="font-size:12px; color:var(--text-muted);">
+        <strong style="color:var(--cyan);" id="quiz-attempt-label">Assessment Set #1</strong> · 8 questions randomly sampled from the 32-question bank.
+      </div>
+      <button class="tool-btn" style="padding:4px 10px; font-size:11px;" onclick="generateNewQuizBatch()">
+        🎲 Shuffle Questions
+      </button>
+    </div>
+
+    <!-- Score Summary Panel -->
+    <div class="score-summary-card" id="quiz-results-banner" style="display:none;">
+      <div style="font-size:11px; text-transform:uppercase; letter-spacing:0.12em; color:var(--green); font-weight:700;">
+        Assessment Evaluation Complete
+      </div>
+      <div class="score-display-number">
+        <span id="score-val-text">0</span> / 8
+      </div>
+      <div id="score-badge-element" class="score-badge-pill"></div>
+      <p style="color:var(--text-muted); font-size:13px; margin-top:8px;" id="score-feedback-text"></p>
+    </div>
+
+    <!-- Questions List (Dynamically Injected) -->
+    <div class="questions-container" id="quiz-questions-list">
+      <!-- Dynamic questions rendered by JavaScript -->
+    </div>
+
+    <!-- Comparison Table -->
+    <div class="comparison-table-card glass-card">
+      <div class="glass-card-header">
+        <span>Comprehensive Technical Comparison: Half Adder vs. Full Adder</span>
+        <span class="mono" style="font-size:10px;">VIVA CHEATSHEET</span>
+      </div>
+      <div class="table-responsive">
+        <table class="compare-table">
+          <thead>
+            <tr>
+              <th>Evaluation Parameter</th>
+              <th class="col-half">Half Adder</th>
+              <th class="col-full">Full Adder</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Input Bit Count</td>
+              <td class="mono">2 Inputs: A, B</td>
+              <td class="mono">3 Inputs: A, B, C<sub>in</sub></td>
+            </tr>
+            <tr>
+              <td>Carry-In Handling</td>
+              <td>Cannot accept carry from previous stage</td>
+              <td>Accepts incoming carry from lower significance bit</td>
+            </tr>
+            <tr>
+              <td>Logic Gate Count</td>
+              <td class="mono">2 Gates: 1 XOR + 1 AND</td>
+              <td class="mono">5 Gates: 2 XOR + 2 AND + 1 OR</td>
+            </tr>
+            <tr>
+              <td>Truth Table Rows</td>
+              <td class="mono">2² = 4 Combinations</td>
+              <td class="mono">2³ = 8 Combinations</td>
+            </tr>
+            <tr>
+              <td>SUM Equation</td>
+              <td class="mono">SUM = A ⊕ B</td>
+              <td class="mono">SUM = A ⊕ B ⊕ C<sub>in</sub></td>
+            </tr>
+            <tr>
+              <td>CARRY Equation</td>
+              <td class="mono">CARRY = A · B</td>
+              <td class="mono">C<sub>out</sub> = (A·B) + (C<sub>in</sub>·(A⊕B))</td>
+            </tr>
+            <tr>
+              <td>Input Condition (1, 1, 1)</td>
+              <td>Invalid / Not Supported</td>
+              <td class="mono">SUM = 1, C<sub>out</sub> = 1 (Decimal 3)</td>
+            </tr>
+            <tr>
+              <td>ALU Application</td>
+              <td>Only for the LSB (Bit 0) stage</td>
+              <td>Cascaded for all remaining higher order bits (Bits 1..N)</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Certificate -->
+    <div class="certificate-card" id="student-certificate-box">
+      <div style="font-size:32px; margin-bottom:8px;">🎓</div>
+      <h2 style="font-size:22px; font-weight:800; color:var(--text);">Virtual Lab Completion Verified</h2>
+      <p style="color:var(--text-muted); font-size:13px; margin:8px auto; max-width:540px;">
+        This document verifies that <strong style="color:var(--cyan);" id="cert-student-name">Student</strong> (Roll No: <strong style="color:var(--text);" id="cert-student-roll">N/A</strong>, Dept: <strong style="color:var(--text);" id="cert-student-dept">ECE</strong>) has wired and verified the operation of Half Adder and Full Adder circuits in real-time 3D simulation.
+      </p>
+      <div style="font-family:var(--mono); font-size:11px; color:var(--text-dim); margin-top:14px;" id="cert-timestamp">
+        Session Timestamp: 2026-09-27
+      </div>
+    </div>
+
+  </div>
+</main>
+
+<!-- ==========================================================================
+     CORE JAVASCRIPT: LOGIC + 3D WIRING + FAULT ALERTS + QUESTION BANK
+     ========================================================================== -->
+<script>
+  /*
+   * ==========================================================================
+   * VIRTUAL LAB CONTROLLER & WIRING ENGINE
+   * 1. Procedural Jumper Wiring: Pin-to-pin click system in 3D & UI dropdowns.
+   * 2. Fault Verification: Output-to-Output, Input-to-Input, and Invalid Routing
+   *    short-circuits trigger Audio/Visual Alert Modal.
+   * 3. Circuit Gating: Logic inputs only update outputs once circuit is fully wired.
+   * 4. 32-Question Random Question Bank: Generates a distinct test set on demand.
+   * ==========================================================================
+   */
+
+  // Audio Synth for Alerts & Clicks
+  const audioCtx = (typeof window.AudioContext !== 'undefined' || typeof window.webkitAudioContext !== 'undefined')
+    ? new (window.AudioContext || window.webkitAudioContext)()
+    : null;
+
+  function playAlertBeep(isSuccess = false) {
+    if (!audioCtx) return;
+    try {
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+
+      if (isSuccess) {
+        osc.frequency.setValueAtTime(587.33, audioCtx.currentTime); // D5
+        osc.frequency.setValueAtTime(880.00, audioCtx.currentTime + 0.1); // A5
+        gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.35);
+        osc.start();
+        osc.stop(audioCtx.currentTime + 0.35);
+      } else {
+        osc.type = 'sawtooth';
+        osc.frequency.setValueAtTime(220, audioCtx.currentTime); // A3 low warning
+        osc.frequency.setValueAtTime(164.81, audioCtx.currentTime + 0.12);
+        gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.4);
+        osc.start();
+        osc.stop(audioCtx.currentTime + 0.4);
+      }
+    } catch(e) {}
+  }
+
+  // 1. GLOBAL STATE
+  const circuitState = {
+    mode: 'half',
+    a: 0,
+    b: 0,
+    cin: 0,
+    x1: 0,
+    c1: 0,
+    c2: 0,
+    sum: 0,
+    carry: 0,
+    // Wiring completion status
+    halfWired: true,
+    fullWired: true
+  };
+
+  // Student Profile
+  let studentProfile = {
+    name: 'Sagar Sharma',
+    roll: '21ECE045',
+    dept: 'ECE',
+    sem: '4th',
+    isLoggedIn: false
+  };
+
+  // 2. TERMINAL PINS DEFINITION (Input/Output Pin Taxonomy)
+  const TERMINALS = {
+    // Half Adder Pins
+    sw_a:     { id: 'sw_a', label: 'Switch A Output', type: 'OUTPUT', signal: 'a', mode: 'half' },
+    sw_b:     { id: 'sw_b', label: 'Switch B Output', type: 'OUTPUT', signal: 'b', mode: 'half' },
+    xor1_in1: { id: 'xor1_in1', label: 'XOR Gate Pin 1 (1A)', type: 'INPUT', accepts: ['a', 'b'], mode: 'half' },
+    xor1_in2: { id: 'xor1_in2', label: 'XOR Gate Pin 2 (1B)', type: 'INPUT', accepts: ['a', 'b'], mode: 'half' },
+    xor1_out: { id: 'xor1_out', label: 'XOR Gate Pin 3 (1Y)', type: 'OUTPUT', signal: 'x1', mode: 'half' },
+    and1_in1: { id: 'and1_in1', label: 'AND Gate Pin 1 (1A)', type: 'INPUT', accepts: ['a', 'b'], mode: 'half' },
+    and1_in2: { id: 'and1_in2', label: 'AND Gate Pin 2 (1B)', type: 'INPUT', accepts: ['a', 'b'], mode: 'half' },
+    and1_out: { id: 'and1_out', label: 'AND Gate Pin 3 (1Y)', type: 'OUTPUT', signal: 'c1', mode: 'half' },
+    led_sum:  { id: 'led_sum', label: 'SUM LED Anode Terminal', type: 'INPUT', accepts: ['x1', 'sum'], mode: 'half' },
+    led_carry:{ id: 'led_carry', label: 'CARRY LED Anode Terminal', type: 'INPUT', accepts: ['c1', 'carry'], mode: 'half' },
+
+    // Full Adder Specific Pins
+    sw_cin:   { id: 'sw_cin', label: 'Switch Cin Output', type: 'OUTPUT', signal: 'cin', mode: 'full' },
+    xor2_in1: { id: 'xor2_in1', label: 'XOR₂ Gate Pin 4 (2A)', type: 'INPUT', accepts: ['x1', 'cin'], mode: 'full' },
+    xor2_in2: { id: 'xor2_in2', label: 'XOR₂ Gate Pin 5 (2B)', type: 'INPUT', accepts: ['x1', 'cin'], mode: 'full' },
+    xor2_out: { id: 'xor2_out', label: 'XOR₂ Gate Pin 6 (2Y)', type: 'OUTPUT', signal: 'sum', mode: 'full' },
+    and2_in1: { id: 'and2_in1', label: 'AND₂ Gate Pin 4 (2A)', type: 'INPUT', accepts: ['x1', 'cin'], mode: 'full' },
+    and2_in2: { id: 'and2_in2', label: 'AND₂ Gate Pin 5 (2B)', type: 'INPUT', accepts: ['x1', 'cin'], mode: 'full' },
+    and2_out: { id: 'and2_out', label: 'AND₂ Gate Pin 6 (2Y)', type: 'OUTPUT', signal: 'c2', mode: 'full' },
+    or1_in1:  { id: 'or1_in1', label: 'OR Gate Pin 1 (1A)', type: 'INPUT', accepts: ['c1', 'c2'], mode: 'full' },
+    or1_in2:  { id: 'or1_in2', label: 'OR Gate Pin 2 (1B)', type: 'INPUT', accepts: ['c1', 'c2'], mode: 'full' },
+    or1_out:  { id: 'or1_out', label: 'OR Gate Pin 3 (1Y)', type: 'OUTPUT', signal: 'carry', mode: 'full' }
+  };
+
+  // Required Connections Baseline
+  const REQUIRED_HALF_WIRES = [
+    { from: 'sw_a', to: 'xor1_in1' },
+    { from: 'sw_b', to: 'xor1_in2' },
+    { from: 'sw_a', to: 'and1_in1' },
+    { from: 'sw_b', to: 'and1_in2' },
+    { from: 'xor1_out', to: 'led_sum' },
+    { from: 'and1_out', to: 'led_carry' }
+  ];
+
+  const REQUIRED_FULL_WIRES = [
+    { from: 'sw_a', to: 'xor1_in1' },
+    { from: 'sw_b', to: 'xor1_in2' },
+    { from: 'sw_a', to: 'and1_in1' },
+    { from: 'sw_b', to: 'and1_in2' },
+    { from: 'xor1_out', to: 'xor2_in1' },
+    { from: 'sw_cin', to: 'xor2_in2' },
+    { from: 'xor1_out', to: 'and2_in1' },
+    { from: 'sw_cin', to: 'and2_in2' },
+    { from: 'and1_out', to: 'or1_in1' },
+    { from: 'and2_out', to: 'or1_in2' },
+    { from: 'xor2_out', to: 'led_sum' },
+    { from: 'or1_out', to: 'led_carry' }
+  ];
+
+  // Active User Jumpers
+  let userWires = {
+    half: [...REQUIRED_HALF_WIRES], // Start in Auto-Wired Reference
+    full: [...REQUIRED_FULL_WIRES]
+  };
+
+  // 3D Scene Registry
+  const scenes = {
+    half: {
+      initialized: false,
+      containerId: 'viewport-half',
+      canvasId: 'canvas-half',
+      renderer: null,
+      scene: null,
+      camera: null,
+      controls: null,
+      animId: null,
+      meshes: {},
+      wires: [],
+      raycaster: new THREE.Raycaster(),
+      mouse: new THREE.Vector2(),
+      clickableObjects: [],
+      selectedPin: null,
+      terminalMeshes: {}
+    },
+    full: {
+      initialized: false,
+      containerId: 'viewport-full',
+      canvasId: 'canvas-full',
+      renderer: null,
+      scene: null,
+      camera: null,
+      controls: null,
+      animId: null,
+      meshes: {},
+      wires: [],
+      raycaster: new THREE.Raycaster(),
+      mouse: new THREE.Vector2(),
+      clickableObjects: [],
+      selectedPin: null,
+      terminalMeshes: {}
+    }
+  };
+
+  let autoCycleInterval = null;
+
+  /* ==========================================================================
+     CIRCUIT WIRING VALIDATOR & FAULT ALERT GENERATOR
+     ========================================================================== */
+  function addJumperWire(mode, pinAId, pinBId) {
+    const tA = TERMINALS[pinAId];
+    const tB = TERMINALS[pinBId];
+
+    if (!tA || !tB) return;
+
+    // FAULT 1: Connected to self
+    if (pinAId === pinBId) {
+      showWiringAlert(
+        "Invalid Self-Loop Connection",
+        "LOOP FAULT",
+        `${tA.label} ➔ ${tB.label}`,
+        "A jumper wire cannot connect a pin to itself. An electrical circuit requires a path between two distinct component terminals.",
+        "Select a different component input as the target terminal."
+      );
+      return;
+    }
+
+    // Determine Driver (Output) and Receiver (Input)
+    let source = null, dest = null;
+    if (tA.type === 'OUTPUT' && tB.type === 'INPUT') {
+      source = tA; dest = tB;
+    } else if (tB.type === 'OUTPUT' && tA.type === 'INPUT') {
+      source = tB; dest = tA;
+    } else if (tA.type === 'OUTPUT' && tB.type === 'OUTPUT') {
+      // FAULT 2: Short Circuit (Output to Output)
+      showWiringAlert(
+        "Short Circuit Conflict! (Output-to-Output)",
+        "SHORT CIRCUIT FAULT (Vcc / GND Contention)",
+        `${tA.label} [OUTPUT] ⚡ ${tB.label} [OUTPUT]`,
+        "You attempted to wire two OUTPUT pins together. In TTL digital circuits, connecting two outputs creates a destructive bus contention where one gate tries to pull HIGH while the other pulls LOW, risking IC damage.",
+        "Rule: Output pins must drive INPUT pins. Connect this output to a logic gate input terminal or LED."
+      );
+      return;
+    } else if (tA.type === 'INPUT' && tB.type === 'INPUT') {
+      // FAULT 3: Floating Input (Input to Input without source)
+      showWiringAlert(
+        "Floating Input Connection! (Input-to-Input)",
+        "FLOATING LOGIC FAULT",
+        `${tA.label} [INPUT] ⇋ ${tB.label} [INPUT]`,
+        "Both terminals are INPUT pins. Without a driving voltage source (from a switch output or gate output), both inputs will remain in an indeterminate, floating high-impedance state.",
+        "Rule: Every logic input must be driven by a signal source (Switch output or gate output)."
+      );
+      return;
+    }
+
+    // Check for Duplicate Wire
+    const existing = userWires[mode].some(w => 
+      (w.from === source.id && w.to === dest.id) || (w.from === dest.id && w.to === source.id)
+    );
+    if (existing) {
+      showWiringAlert(
+        "Redundant Jumper Connection",
+        "DUPLICATE WIRE",
+        `${source.label} ➔ ${dest.label}`,
+        "A jumper wire already connects these two terminal pins. Adding duplicate wires in parallel is redundant.",
+        "Select another unconnected gate input to continue wiring the circuit."
+      );
+      return;
+    }
+
+    // FAULT 4: Logical Routing Mismatch
+    // Check if destination input accepts this signal
+    const isAccepted = dest.accepts && dest.accepts.includes(source.signal);
+    if (!isAccepted) {
+      let explanation = `The ${dest.label} is not designed to receive the '${source.label}'.`;
+      let tip = "Review the circuit schematic to route the correct logic term.";
+
+      if (mode === 'half') {
+        if (dest.id === 'led_carry' && source.id === 'xor1_out') {
+          explanation = "Routing Error: In a Half Adder, the XOR gate output generates the SUM bit (A ⊕ B). You connected it to the CARRY LED!";
+          tip = "Connect XOR Output to the SUM LED, and connect AND Output to the CARRY LED.";
+        } else if (dest.id === 'led_sum' && source.id === 'and1_out') {
+          explanation = "Routing Error: The AND gate generates the CARRY bit (A · B). You connected it to the SUM LED!";
+          tip = "Connect AND Output to CARRY LED.";
+        }
+      } else {
+        if (dest.id === 'led_sum' && source.id === 'or1_out') {
+          explanation = "Routing Error: The OR gate generates the final CARRY-OUT (C1 + C2), not the SUM bit!";
+          tip = "Connect XOR₂ output to the SUM LED, and OR output to the CARRY LED.";
+        }
+      }
+
+      showWiringAlert(
+        "Incorrect Circuit Routing Path",
+        "LOGIC ARCHITECTURE FAULT",
+        `${source.label} ➔ ${dest.label}`,
+        explanation,
+        tip
+      );
+      return;
+    }
+
+    // SUCCESS: Add the valid wire!
+    userWires[mode].push({ from: source.id, to: dest.id });
+    playAlertBeep(true);
+
+    // Rebuild 3D Jumpers
+    reconstruct3DWires(mode);
+    checkCircuitCompletion(mode);
+  }
+
+  function showWiringAlert(title, tag, terminals, message, hint, isSuccess = false) {
+    playAlertBeep(isSuccess);
+    const modal = document.getElementById('wiring-alert-modal');
+    const box = document.getElementById('modal-box-theme');
+    const icon = document.getElementById('alert-modal-icon');
+
+    if (isSuccess) {
+      box.classList.add('success-theme');
+      icon.textContent = '🎉';
+    } else {
+      box.classList.remove('success-theme');
+      icon.textContent = '⚠️';
+    }
+
+    document.getElementById('alert-modal-title').textContent = title;
+    document.getElementById('alert-modal-tag').textContent = tag;
+    document.getElementById('alert-modal-terminals').textContent = terminals;
+    document.getElementById('alert-modal-message').textContent = message;
+    document.getElementById('alert-modal-hint').innerHTML = `💡 <strong>Guideline:</strong> ${hint}`;
+
+    modal.classList.add('show');
+  }
+
+  function dismissWiringAlert() {
+    document.getElementById('wiring-alert-modal').classList.remove('show');
+  }
+
+  /* Check if all required wires exist */
+  function checkCircuitCompletion(mode) {
+    const required = mode === 'half' ? REQUIRED_HALF_WIRES : REQUIRED_FULL_WIRES;
+    const current = userWires[mode];
+
+    // Every required wire must be present
+    const isComplete = required.every(req => 
+      current.some(w => 
+        (w.from === req.from && w.to === req.to) || (w.from === req.to && w.to === req.from)
+      )
+    );
+
+    const strip = document.getElementById(`wiring-strip-${mode}`);
+    const pill = document.getElementById(`wiring-pill-${mode}`);
+    const task = document.getElementById(`wiring-task-${mode}`);
+    const counter = document.getElementById(`wire-counter-${mode}`);
+    const tableStatus = document.getElementById(`table-status-${mode}`);
+
+    const connectedCount = current.length;
+    const totalRequired = required.length;
+
+    counter.textContent = `${connectedCount} / ${totalRequired} Connected`;
+
+    if (isComplete) {
+      circuitState[mode === 'half' ? 'halfWired' : 'fullWired'] = true;
+      strip.className = 'wiring-status-strip state-verified';
+      pill.className = 'wiring-mode-pill pill-complete';
+      pill.textContent = 'CIRCUIT OPERATIONAL';
+      task.innerHTML = '🎉 <strong>Circuit Verified!</strong> All required jumper connections are correct. Flip switches to test the truth table.';
+      counter.style.color = 'var(--green)';
+      tableStatus.textContent = 'CIRCUIT VERIFIED & OPERATIONAL';
+      tableStatus.style.color = 'var(--green)';
+    } else {
+      circuitState[mode === 'half' ? 'halfWired' : 'fullWired'] = false;
+      strip.className = 'wiring-status-strip state-incomplete';
+      pill.className = 'wiring-mode-pill pill-manual';
+      pill.textContent = 'WIRING INCOMPLETE';
+      task.textContent = `👉 Connect remaining ${totalRequired - connectedCount} jumper(s) to close the circuit and activate outputs.`;
+      counter.style.color = 'var(--amber)';
+      tableStatus.textContent = 'CIRCUIT OPEN — WIRING REQUIRED';
+      tableStatus.style.color = 'var(--amber)';
+    }
+
+    updateAllViews();
+  }
+
+  function autoWireReference(mode) {
+    userWires[mode] = mode === 'half' ? [...REQUIRED_HALF_WIRES] : [...REQUIRED_FULL_WIRES];
+    reconstruct3DWires(mode);
+    checkCircuitCompletion(mode);
+    showWiringAlert(
+      "Reference Circuit Auto-Wired",
+      "REFERENCE BENCH RESTORED",
+      `All ${mode === 'half' ? '6' : '12'} Standard Connections Placed`,
+      `The standard ${mode === 'half' ? 'Half' : 'Full'} Adder circuit has been fully wired according to the theoretical schematic.`,
+      "You can now operate the switches to inspect truth table states.",
+      true
+    );
+  }
+
+  function clearAllWires(mode) {
+    userWires[mode] = [];
+    reconstruct3DWires(mode);
+    checkCircuitCompletion(mode);
+  }
+
+  function connectFromSelect(mode) {
+    const fromVal = document.getElementById(`select-${mode}-from`).value;
+    const toVal = document.getElementById(`select-${mode}-to`).value;
+    addJumperWire(mode, fromVal, toVal);
+  }
+
+  /* ==========================================================================
+     LOGIC ENGINE (Gated by Wiring Completion)
+     ========================================================================== */
+  function solveLogic() {
+    const isWired = circuitState.mode === 'half' ? circuitState.halfWired : circuitState.fullWired;
+
+    if (!isWired) {
+      // Circuit incomplete: inputs are floating, outputs stay 0
+      circuitState.x1 = 0;
+      circuitState.c1 = 0;
+      circuitState.c2 = 0;
+      circuitState.sum = 0;
+      circuitState.carry = 0;
+      return;
+    }
+
+    const { a, b, cin, mode } = circuitState;
+    circuitState.x1 = a ^ b;
+    circuitState.c1 = a & b;
+    circuitState.c2 = circuitState.x1 & cin;
+
+    if (mode === 'half') {
+      circuitState.sum = circuitState.x1;
+      circuitState.carry = circuitState.c1;
+    } else {
+      circuitState.sum = circuitState.x1 ^ cin;
+      circuitState.carry = circuitState.c1 | circuitState.c2;
+    }
+  }
+
+  function toggleInput(pinName) {
+    const isWired = circuitState.mode === 'half' ? circuitState.halfWired : circuitState.fullWired;
+    if (!isWired) {
+      showWiringAlert(
+        "Circuit Path Incomplete!",
+        "OPEN CIRCUIT FAULT",
+        "Inputs Floating",
+        "The circuit cannot process signals because required jumper wires are missing. Please complete the wiring first.",
+        "Click '⚡ Auto-Wire Reference' or wire the terminal pins to continue."
+      );
+      return;
+    }
+    circuitState[pinName] = circuitState[pinName] ? 0 : 1;
+    updateAllViews();
+  }
+
+  function resetCircuitInputs() {
+    circuitState.a = 0;
+    circuitState.b = 0;
+    circuitState.cin = 0;
+    if (autoCycleInterval) {
+      clearInterval(autoCycleInterval);
+      autoCycleInterval = null;
+      document.getElementById('btn-autocycle-half').classList.remove('active');
+      document.getElementById('btn-autocycle-full').classList.remove('active');
+    }
+    updateAllViews();
+  }
+
+  /* ==========================================================================
+     DOM UI REFRESH
+     ========================================================================== */
+  function updateAllViews() {
+    solveLogic();
+    const isHalf = circuitState.mode === 'half';
+    const isWired = isHalf ? circuitState.halfWired : circuitState.fullWired;
+
+    updateSwitchCard(isHalf ? 'sw-half-a' : 'sw-full-a', isHalf ? 'num-half-a' : 'num-full-a', circuitState.a);
+    updateSwitchCard(isHalf ? 'sw-half-b' : 'sw-full-b', isHalf ? 'num-half-b' : 'num-full-b', circuitState.b);
+    if (!isHalf) {
+      updateSwitchCard('sw-full-cin', 'num-full-cin', circuitState.cin);
+    }
+
+    if (isHalf) {
+      updateGateCard('gate-card-h-xor', 'val-gate-h-xor', circuitState.x1, 'active-cyan');
+      updateGateCard('gate-card-h-and', 'val-gate-h-and', circuitState.c1, 'active-amber');
+    } else {
+      updateGateCard('gate-card-f-xor1', 'val-gate-f-xor1', circuitState.x1, 'active-cyan');
+      updateGateCard('gate-card-f-xor2', 'val-gate-f-xor2', circuitState.sum, 'active-cyan');
+      updateGateCard('gate-card-f-and1', 'val-gate-f-and1', circuitState.c1, 'active-amber');
+      updateGateCard('gate-card-f-and2', 'val-gate-f-and2', circuitState.c2, 'active-amber');
+      updateGateCard('gate-card-f-or', 'val-gate-f-or', circuitState.carry, 'active-purple');
+    }
+
+    const sumActive = isWired && circuitState.sum === 1;
+    const carryActive = isWired && circuitState.carry === 1;
+
+    if (isHalf) {
+      const ledSum = document.getElementById('led-card-h-sum');
+      const ledCarry = document.getElementById('led-card-h-carry');
+      ledSum.className = `led-output-card ${sumActive ? 'on-sum' : ''}`;
+      ledCarry.className = `led-output-card ${carryActive ? 'on-carry' : ''}`;
+      document.getElementById('status-h-sum').textContent = sumActive ? 'HIGH (+5.0 V)' : 'LOW (0 V)';
+      document.getElementById('status-h-carry').textContent = carryActive ? 'HIGH (+5.0 V)' : 'LOW (0 V)';
+
+      document.getElementById('math-eval-half').innerHTML = isWired
+        ? `SUM = ${circuitState.a} ⊕ ${circuitState.b} = <strong style="color:var(--cyan); font-size:15px;">${circuitState.sum}</strong> &nbsp;&nbsp;|&nbsp;&nbsp; ` +
+          `CARRY = ${circuitState.a} · ${circuitState.b} = <strong style="color:var(--amber); font-size:15px;">${circuitState.carry}</strong>`
+        : `<span style="color:var(--amber);">⚠️ Circuit Open — Wire connections to activate logic calculations.</span>`;
+
+      const rowIndex = (circuitState.a << 1) | circuitState.b;
+      document.querySelectorAll('#table-half tbody tr').forEach((row, i) => {
+        row.className = (isWired && i === rowIndex) ? 'active-row' : '';
+      });
+
+      const pips = [0, 1, 2, 3];
+      pips.forEach(p => {
+        const el = document.getElementById(`pip-h-${p}`);
+        if (isWired && p < rowIndex) el.className = 'progress-pip completed';
+        else if (isWired && p === rowIndex) el.className = 'progress-pip current';
+        else el.className = 'progress-pip';
+      });
+
+      if (isWired) {
+        const hints = [
+          "Task 1/4: A=0, B=0 → Sum=0, Carry=0 (No addition overflow).",
+          "Task 2/4: A=0, B=1 → Sum=1, Carry=0 (XOR detects single HIGH bit).",
+          "Task 3/4: A=1, B=0 → Sum=1, Carry=0 (XOR detects single HIGH bit).",
+          "Task 4/4: A=1, B=1 → Sum=0, Carry=1 (AND generates carry overflow 10₂)."
+        ];
+        document.getElementById('guide-text-half').textContent = hints[rowIndex];
+      }
+    } else {
+      const ledSum = document.getElementById('led-card-f-sum');
+      const ledCarry = document.getElementById('led-card-f-carry');
+      ledSum.className = `led-output-card ${sumActive ? 'on-sum' : ''}`;
+      ledCarry.className = `led-output-card ${carryActive ? 'on-carry' : ''}`;
+      document.getElementById('status-f-sum').textContent = sumActive ? 'HIGH (+5.0 V)' : 'LOW (0 V)';
+      document.getElementById('status-f-carry').textContent = carryActive ? 'HIGH (+5.0 V)' : 'LOW (0 V)';
+
+      document.getElementById('math-eval-full').innerHTML = isWired
+        ? `X₁ = ${circuitState.a} ⊕ ${circuitState.b} = ${circuitState.x1} &nbsp;|&nbsp; ` +
+          `SUM = ${circuitState.x1} ⊕ ${circuitState.cin} = <strong style="color:var(--cyan); font-size:15px;">${circuitState.sum}</strong> &nbsp;|&nbsp; ` +
+          `C<sub>out</sub> = ${circuitState.c1} + ${circuitState.c2} = <strong style="color:var(--amber); font-size:15px;">${circuitState.carry}</strong>`
+        : `<span style="color:var(--amber);">⚠️ Circuit Open — Wire connections to activate logic calculations.</span>`;
+
+      const rowIndex = (circuitState.a << 2) | (circuitState.b << 1) | circuitState.cin;
+      document.querySelectorAll('#table-full tbody tr').forEach((row, i) => {
+        row.className = (isWired && i === rowIndex) ? 'active-row' : '';
+      });
+
+      for (let p = 0; p < 8; p++) {
+        const el = document.getElementById(`pip-f-${p}`);
+        if (isWired && p < rowIndex) el.className = 'progress-pip completed';
+        else if (isWired && p === rowIndex) el.className = 'progress-pip current';
+        else el.className = 'progress-pip';
+      }
+
+      if (isWired) {
+        document.getElementById('guide-text-full').textContent = 
+          `Active State Row #${rowIndex}: A=${circuitState.a}, B=${circuitState.b}, Cin=${circuitState.cin} → Result: Sum=${circuitState.sum}, Cout=${circuitState.carry}`;
+      }
+    }
+
+    update3DSceneVisuals(circuitState.mode);
+  }
+
+  function updateSwitchCard(cardId, numId, value) {
+    const card = document.getElementById(cardId);
+    const num = document.getElementById(numId);
+    if (!card || !num) return;
+    if (value === 1) {
+      card.classList.add('active');
+      num.textContent = '1';
+    } else {
+      card.classList.remove('active');
+      num.textContent = '0';
+    }
+  }
+
+  function updateGateCard(cardId, valId, val, activeClass) {
+    const card = document.getElementById(cardId);
+    const valEl = document.getElementById(valId);
+    if (!card || !valEl) return;
+    valEl.textContent = val;
+    if (val === 1) card.classList.add(activeClass);
+    else card.classList.remove(activeClass);
+  }
+
+  function toggleAutoSequence(mode) {
+    const isWired = mode === 'half' ? circuitState.halfWired : circuitState.fullWired;
+    if (!isWired) {
+      showWiringAlert(
+        "Cannot Run Auto Cycle on Open Circuit",
+        "WIRING REQUIRED",
+        "Incomplete Jumpers",
+        "Please finish wiring all jumper connections before running the automated truth table cycle.",
+        "Click '⚡ Auto-Wire Reference' to quickly place all jumpers."
+      );
+      return;
+    }
+
+    const btn = document.getElementById(mode === 'half' ? 'btn-autocycle-half' : 'btn-autocycle-full');
+    if (autoCycleInterval) {
+      clearInterval(autoCycleInterval);
+      autoCycleInterval = null;
+      btn.classList.remove('active');
+      return;
+    }
+
+    btn.classList.add('active');
+    let step = 0;
+    const totalSteps = mode === 'half' ? 4 : 8;
+
+    autoCycleInterval = setInterval(() => {
+      if (mode === 'half') {
+        circuitState.a = (step >> 1) & 1;
+        circuitState.b = step & 1;
+      } else {
+        circuitState.a = (step >> 2) & 1;
+        circuitState.b = (step >> 1) & 1;
+        circuitState.cin = step & 1;
+      }
+      updateAllViews();
+      step = (step + 1) % totalSteps;
+    }, 1200);
+  }
+
+  function toggleSchematicView(mode) {
+    const overlay = document.getElementById(mode === 'half' ? 'schematic-half-overlay' : 'schematic-full-overlay');
+    const btn = document.getElementById(mode === 'half' ? 'btn-schematic-half' : 'btn-schematic-full');
+    overlay.classList.toggle('active');
+    btn.classList.toggle('primary');
+  }
+
+  /* ==========================================================================
+     3D WORKBENCH & PHYSICAL BREADBOARD ENGINE
+     ========================================================================== */
+  function init3DWorkbench(mode) {
+    const ctx = scenes[mode];
+    const container = document.getElementById(ctx.containerId);
+    const canvas = document.getElementById(ctx.canvasId);
+
+    if (!container || !canvas) return;
+    if (ctx.animId) cancelAnimationFrame(ctx.animId);
+    if (ctx.renderer) ctx.renderer.dispose();
+
+    const width = container.clientWidth || 900;
+    const height = container.clientHeight || 500;
+
+    ctx.renderer = new THREE.WebGLRenderer({
+      canvas: canvas,
+      antialias: true,
+      alpha: true,
+      powerPreference: 'high-performance'
+    });
+    ctx.renderer.setSize(width, height);
+    ctx.renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+    ctx.renderer.shadowMap.enabled = true;
+    ctx.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+
+    ctx.scene = new THREE.Scene();
+    ctx.scene.background = new THREE.Color(0x0a1424);
+    ctx.scene.fog = new THREE.Fog(0x0a1424, 25, 45);
+
+    ctx.camera = new THREE.PerspectiveCamera(42, width / height, 0.1, 100);
+    ctx.camera.position.set(0, 11, 17);
+
+    ctx.controls = new THREE.OrbitControls(ctx.camera, canvas);
+    ctx.controls.enableDamping = true;
+    ctx.controls.dampingFactor = 0.05;
+    ctx.controls.minDistance = 6;
+    ctx.controls.maxDistance = 28;
+    ctx.controls.maxPolarAngle = Math.PI * 0.46;
+    ctx.controls.target.set(0, 0.5, 0);
+    ctx.controls.update();
+
+    setupStudioLighting(ctx.scene);
+    buildPhysicalCircuit(mode);
+    setupRaycastingInteraction(mode);
+
+    const resizeObserver = new ResizeObserver(() => {
+      const w = container.clientWidth;
+      const h = container.clientHeight;
+      if (w > 0 && h > 0 && ctx.renderer) {
+        ctx.renderer.setSize(w, h);
+        ctx.camera.aspect = w / h;
+        ctx.camera.updateProjectionMatrix();
+      }
+    });
+    resizeObserver.observe(container);
+
+    ctx.initialized = true;
+    startRenderLoop(mode);
+    reconstruct3DWires(mode);
+    checkCircuitCompletion(mode);
+  }
+
+  function setupStudioLighting(scene) {
+    const ambient = new THREE.AmbientLight(0x88b0d0, 0.85);
+    scene.add(ambient);
+
+    const keyLight = new THREE.DirectionalLight(0xffffff, 1.4);
+    keyLight.position.set(6, 15, 10);
+    keyLight.castShadow = true;
+    keyLight.shadow.mapSize.width = 1024;
+    keyLight.shadow.mapSize.height = 1024;
+    scene.add(keyLight);
+
+    const rimCyan = new THREE.PointLight(0x00d4ff, 18, 25);
+    rimCyan.position.set(-9, 6, 6);
+    scene.add(rimCyan);
+
+    const bounceAmber = new THREE.PointLight(0xf59e0b, 14, 25);
+    bounceAmber.position.set(9, 5, -6);
+    scene.add(bounceAmber);
+  }
+
+  function buildPhysicalCircuit(mode) {
+    const ctx = scenes[mode];
+    const isHalf = mode === 'half';
+    ctx.meshes = {};
+    ctx.wires = [];
+    ctx.clickableObjects = [];
+    ctx.terminalMeshes = {};
+
+    const boardWidth = isHalf ? 19 : 25;
+    const boardDepth = isHalf ? 9 : 11;
+
+    // Solderless Breadboard Assembly
+    const bbGroup = new THREE.Group();
+    const baseGeo = new THREE.BoxGeometry(boardWidth, 0.45, boardDepth);
+    const baseMat = new THREE.MeshStandardMaterial({ color: 0xeeeeee, roughness: 0.45, metalness: 0.1 });
+    const breadboardBase = new THREE.Mesh(baseGeo, baseMat);
+    breadboardBase.position.y = -0.225;
+    breadboardBase.receiveShadow = true;
+    bbGroup.add(breadboardBase);
+
+    const topPlateGeo = new THREE.BoxGeometry(boardWidth - 0.4, 0.05, boardDepth - 0.4);
+    const topPlateMat = new THREE.MeshStandardMaterial({ color: 0xf8fafc, roughness: 0.3 });
+    const topPlate = new THREE.Mesh(topPlateGeo, topPlateMat);
+    topPlate.position.y = 0.025;
+    topPlate.receiveShadow = true;
+    bbGroup.add(topPlate);
+
+    // Power and Ground Rails
+    const railGeo = new THREE.BoxGeometry(boardWidth - 1.2, 0.04, 0.1);
+    const redRail = new THREE.Mesh(railGeo, new THREE.MeshBasicMaterial({ color: 0xef4444 }));
+    redRail.position.set(0, 0.05, -boardDepth / 2 + 0.55);
+    bbGroup.add(redRail);
+
+    const blueRail = new THREE.Mesh(railGeo, new THREE.MeshBasicMaterial({ color: 0x3b82f6 }));
+    blueRail.position.set(0, 0.05, -boardDepth / 2 + 0.85);
+    bbGroup.add(blueRail);
+
+    ctx.scene.add(bbGroup);
+
+    // Layout Coordinates
+    let layout;
+    if (isHalf) {
+      layout = {
+        swA: [-6.8, 0.5, -2.0],
+        swB: [-6.8, 0.5, 2.0],
+        xor1: [0.0, 0.5, -1.8],
+        and1: [0.0, 0.5, 1.8],
+        ledSum: [6.8, 0.5, -1.8],
+        ledCarry: [6.8, 0.5, 1.8]
+      };
+    } else {
+      layout = {
+        swA: [-9.5, 0.5, -3.2],
+        swB: [-9.5, 0.5, 0.0],
+        swCin: [-9.5, 0.5, 3.2],
+        xor1: [-3.2, 0.5, -1.8],
+        and1: [-3.2, 0.5, 1.8],
+        xor2: [2.8, 0.5, -3.0],
+        and2: [2.8, 0.5, 0.5],
+        or1: [6.5, 0.5, 1.8],
+        ledSum: [10.5, 0.5, -3.0],
+        ledCarry: [10.5, 0.5, 1.8]
+      };
+    }
+
+    // Components
+    createToggleSwitch(ctx, 'a', layout.swA, 'INPUT A');
+    createToggleSwitch(ctx, 'b', layout.swB, 'INPUT B');
+    if (!isHalf) {
+      createToggleSwitch(ctx, 'cin', layout.swCin, 'INPUT Cin');
+    }
+
+    createLogicGateIC(ctx, 'xor1', layout.xor1, '74LS86 XOR', 0x00d4ff);
+    createLogicGateIC(ctx, 'and1', layout.and1, '74LS08 AND', 0xf59e0b);
+    if (!isHalf) {
+      createLogicGateIC(ctx, 'xor2', layout.xor2, '74LS86 XOR₂', 0x00d4ff);
+      createLogicGateIC(ctx, 'and2', layout.and2, '74LS08 AND₂', 0xf59e0b);
+      createLogicGateIC(ctx, 'or1', layout.or1, '74LS32 OR', 0xa855f7);
+    }
+
+    createDomeLED(ctx, 'sum', layout.ledSum, 'SUM LED', 0x00d4ff);
+    createDomeLED(ctx, 'carry', layout.ledCarry, 'CARRY LED', 0xf59e0b);
+
+    // Create Clickable Terminal Pin Posts (Gold contacts)
+    createTerminalPin(ctx, 'sw_a', [layout.swA[0] + 0.8, 0.35, layout.swA[2]], 'Switch A Out');
+    createTerminalPin(ctx, 'sw_b', [layout.swB[0] + 0.8, 0.35, layout.swB[2]], 'Switch B Out');
+    if (!isHalf) {
+      createTerminalPin(ctx, 'sw_cin', [layout.swCin[0] + 0.8, 0.35, layout.swCin[2]], 'Cin Out');
+    }
+
+    createTerminalPin(ctx, 'xor1_in1', [layout.xor1[0] - 1.1, 0.35, layout.xor1[2] - 0.3], 'XOR In1');
+    createTerminalPin(ctx, 'xor1_in2', [layout.xor1[0] - 1.1, 0.35, layout.xor1[2] + 0.3], 'XOR In2');
+    createTerminalPin(ctx, 'xor1_out', [layout.xor1[0] + 1.1, 0.35, layout.xor1[2]], 'XOR Out');
+
+    createTerminalPin(ctx, 'and1_in1', [layout.and1[0] - 1.1, 0.35, layout.and1[2] - 0.3], 'AND In1');
+    createTerminalPin(ctx, 'and1_in2', [layout.and1[0] - 1.1, 0.35, layout.and1[2] + 0.3], 'AND In2');
+    createTerminalPin(ctx, 'and1_out', [layout.and1[0] + 1.1, 0.35, layout.and1[2]], 'AND Out');
+
+    if (!isHalf) {
+      createTerminalPin(ctx, 'xor2_in1', [layout.xor2[0] - 1.1, 0.35, layout.xor2[2] - 0.3], 'XOR₂ In1');
+      createTerminalPin(ctx, 'xor2_in2', [layout.xor2[0] - 1.1, 0.35, layout.xor2[2] + 0.3], 'XOR₂ In2');
+      createTerminalPin(ctx, 'xor2_out', [layout.xor2[0] + 1.1, 0.35, layout.xor2[2]], 'XOR₂ Out');
+
+      createTerminalPin(ctx, 'and2_in1', [layout.and2[0] - 1.1, 0.35, layout.and2[2] - 0.3], 'AND₂ In1');
+      createTerminalPin(ctx, 'and2_in2', [layout.and2[0] - 1.1, 0.35, layout.and2[2] + 0.3], 'AND₂ In2');
+      createTerminalPin(ctx, 'and2_out', [layout.and2[0] + 1.1, 0.35, layout.and2[2]], 'AND₂ Out');
+
+      createTerminalPin(ctx, 'or1_in1', [layout.or1[0] - 1.1, 0.35, layout.or1[2] - 0.3], 'OR In1');
+      createTerminalPin(ctx, 'or1_in2', [layout.or1[0] - 1.1, 0.35, layout.or1[2] + 0.3], 'OR In2');
+      createTerminalPin(ctx, 'or1_out', [layout.or1[0] + 1.1, 0.35, layout.or1[2]], 'OR Out');
+    }
+
+    createTerminalPin(ctx, 'led_sum', [layout.ledSum[0] - 0.8, 0.35, layout.ledSum[2]], 'SUM LED In');
+    createTerminalPin(ctx, 'led_carry', [layout.ledCarry[0] - 0.8, 0.35, layout.ledCarry[2]], 'CARRY LED In');
+  }
+
+  function createTerminalPin(ctx, pinId, pos, pinLabel) {
+    const pinGroup = new THREE.Group();
+    pinGroup.position.set(...pos);
+
+    // Gold Pin Post
+    const postGeo = new THREE.CylinderGeometry(0.12, 0.14, 0.45, 16);
+    const postMat = new THREE.MeshStandardMaterial({
+      color: 0xd4a843,
+      metalness: 0.95,
+      roughness: 0.1
+    });
+    const post = new THREE.Mesh(postGeo, postMat);
+    post.position.y = 0.225;
+    pinGroup.add(post);
+
+    // Target Selection Beacon Ring
+    const ringGeo = new THREE.RingGeometry(0.18, 0.28, 24);
+    const ringMat = new THREE.MeshBasicMaterial({
+      color: 0x00d4ff,
+      side: THREE.DoubleSide,
+      transparent: true,
+      opacity: 0.6
+    });
+    const ring = new THREE.Mesh(ringGeo, ringMat);
+    ring.rotation.x = -Math.PI / 2;
+    ring.position.y = 0.46;
+    pinGroup.add(ring);
+
+    // Raycast hit target
+    const hitGeo = new THREE.BoxGeometry(0.6, 0.9, 0.6);
+    const hitMat = new THREE.MeshBasicMaterial({ visible: false });
+    const hit = new THREE.Mesh(hitGeo, hitMat);
+    hit.position.y = 0.45;
+    hit.userData = { isPin: true, pinId: pinId, label: pinLabel };
+    pinGroup.add(hit);
+
+    ctx.scene.add(pinGroup);
+    ctx.clickableObjects.push(hit);
+    ctx.terminalMeshes[pinId] = { group: pinGroup, ring: ring, pos: pos };
+  }
+
+  function createToggleSwitch(ctx, key, pos, labelText) {
+    const swGroup = new THREE.Group();
+    swGroup.position.set(...pos);
+
+    const baseGeo = new THREE.CylinderGeometry(0.5, 0.55, 0.35, 24);
+    const baseMat = new THREE.MeshStandardMaterial({ color: 0x334155, metalness: 0.8, roughness: 0.25 });
+    const base = new THREE.Mesh(baseGeo, baseMat);
+    base.castShadow = true;
+    swGroup.add(base);
+
+    const leverGroup = new THREE.Group();
+    leverGroup.position.set(0, 0.18, 0);
+
+    const leverGeo = new THREE.CylinderGeometry(0.08, 0.14, 0.9, 16);
+    const leverMat = new THREE.MeshStandardMaterial({ color: 0xe2e8f0, metalness: 0.9, roughness: 0.15 });
+    const leverStem = new THREE.Mesh(leverGeo, leverMat);
+    leverStem.position.y = 0.45;
+    leverGroup.add(leverStem);
+
+    const tipGeo = new THREE.SphereGeometry(0.24, 20, 20);
+    const tipMat = new THREE.MeshStandardMaterial({ color: 0xef4444, emissive: 0x7f1d1d, emissiveIntensity: 0.6 });
+    const tip = new THREE.Mesh(tipGeo, tipMat);
+    tip.position.y = 0.9;
+    leverGroup.add(tip);
+
+    swGroup.add(leverGroup);
+
+    const sprite = createTextSprite(labelText, '#00d4ff');
+    sprite.position.set(0, 1.6, 0);
+    swGroup.add(sprite);
+
+    const hitBoxGeo = new THREE.BoxGeometry(1.2, 2.0, 1.2);
+    const hitBoxMat = new THREE.MeshBasicMaterial({ visible: false });
+    const hitBox = new THREE.Mesh(hitBoxGeo, hitBoxMat);
+    hitBox.position.y = 0.8;
+    hitBox.userData = { isSwitch: true, switchKey: key };
+    swGroup.add(hitBox);
+
+    ctx.scene.add(swGroup);
+    ctx.meshes[`sw_${key}`] = { group: swGroup, lever: leverGroup, tip: tip };
+    ctx.clickableObjects.push(hitBox);
+  }
+
+  function createLogicGateIC(ctx, key, pos, chipLabel, glowColor) {
+    const icGroup = new THREE.Group();
+    icGroup.position.set(...pos);
+
+    const bodyGeo = new THREE.BoxGeometry(1.9, 0.55, 1.15);
+    const bodyMat = new THREE.MeshStandardMaterial({ color: 0x111827, roughness: 0.65, metalness: 0.2 });
+    const body = new THREE.Mesh(bodyGeo, bodyMat);
+    body.position.y = 0.275;
+    icGroup.add(body);
+
+    const ribbonGeo = new THREE.BoxGeometry(1.7, 0.04, 0.9);
+    const ribbonMat = new THREE.MeshStandardMaterial({ color: 0x1f2937, emissive: 0x000000, emissiveIntensity: 0 });
+    const ribbon = new THREE.Mesh(ribbonGeo, ribbonMat);
+    ribbon.position.y = 0.56;
+    icGroup.add(ribbon);
+
+    const sprite = createTextSprite(chipLabel, '#ffffff');
+    sprite.position.set(0, 1.25, 0);
+    icGroup.add(sprite);
+
+    ctx.scene.add(icGroup);
+    ctx.meshes[`gate_${key}`] = { group: icGroup, ribbon: ribbon, glowColor: glowColor };
+  }
+
+  function createDomeLED(ctx, key, pos, labelText, lightColor) {
+    const ledGroup = new THREE.Group();
+    ledGroup.position.set(...pos);
+
+    const holderGeo = new THREE.CylinderGeometry(0.55, 0.55, 0.3, 24);
+    const holderMat = new THREE.MeshStandardMaterial({ color: 0x1e293b, metalness: 0.85, roughness: 0.2 });
+    const holder = new THREE.Mesh(holderGeo, holderMat);
+    holder.position.y = 0.15;
+    ledGroup.add(holder);
+
+    const domeGeo = new THREE.SphereGeometry(0.38, 24, 24);
+    const domeMat = new THREE.MeshStandardMaterial({ color: 0x1e293b, emissive: 0x000000, emissiveIntensity: 0.05, transparent: true, opacity: 0.9 });
+    const dome = new THREE.Mesh(domeGeo, domeMat);
+    dome.position.y = 0.45;
+    ledGroup.add(dome);
+
+    const pointLight = new THREE.PointLight(lightColor, 0, 8);
+    pointLight.position.set(0, 0.9, 0);
+    ledGroup.add(pointLight);
+
+    const sprite = createTextSprite(labelText, '#94a3b8');
+    sprite.position.set(0, 1.45, 0);
+    ledGroup.add(sprite);
+
+    ctx.scene.add(ledGroup);
+    ctx.meshes[`led_${key}`] = { group: ledGroup, dome: dome, light: pointLight, color: lightColor };
+  }
+
+  function createTextSprite(text, textColor = '#ffffff') {
+    const canvas = document.createElement('canvas');
+    canvas.width = 256; canvas.height = 64;
+    const g = canvas.getContext('2d');
+    g.font = 'bold 26px Inter, JetBrains Mono, sans-serif';
+    g.fillStyle = textColor; g.textAlign = 'center'; g.textBaseline = 'middle';
+    g.fillText(text, 128, 32);
+
+    const texture = new THREE.CanvasTexture(canvas);
+    const spriteMat = new THREE.SpriteMaterial({ map: texture, transparent: true, depthTest: false });
+    const sprite = new THREE.Sprite(spriteMat);
+    sprite.scale.set(1.9, 0.48, 1);
+    return sprite;
+  }
+
+  /* Reconstruct 3D Wires Dynamically From userWires */
+  function reconstruct3DWires(mode) {
+    const ctx = scenes[mode];
+    if (!ctx.scene) return;
+
+    // Remove existing wire lines and pulse spheres
+    ctx.wires.forEach(w => {
+      ctx.scene.remove(w.line);
+      ctx.scene.remove(w.pulse);
+      w.line.geometry.dispose();
+      w.line.material.dispose();
+      w.pulse.geometry.dispose();
+      w.pulse.material.dispose();
+    });
+    ctx.wires = [];
+
+    const currentWires = userWires[mode];
+    currentWires.forEach(wDef => {
+      const pinA = ctx.terminalMeshes[wDef.from];
+      const pinB = ctx.terminalMeshes[wDef.to];
+      if (!pinA || !pinB) return;
+
+      const p1 = new THREE.Vector3(...pinA.pos);
+      const p3 = new THREE.Vector3(...pinB.pos);
+      const arcHeight = Math.max(p1.y, p3.y) + 1.25;
+      const mid = new THREE.Vector3((p1.x + p3.x) / 2, arcHeight, (p1.z + p3.z) / 2);
+
+      const curve = new THREE.CatmullRomCurve3([p1, mid, p3]);
+      const points = curve.getPoints(32);
+
+      const wireGeo = new THREE.BufferGeometry().setFromPoints(points);
+      const wireMat = new THREE.LineBasicMaterial({
+        color: 0x00d4ff,
+        transparent: true,
+        opacity: 0.65,
+        linewidth: 2
+      });
+      const wireLine = new THREE.Line(wireGeo, wireMat);
+      ctx.scene.add(wireLine);
+
+      const pulseGeo = new THREE.SphereGeometry(0.12, 12, 12);
+      const pulseMat = new THREE.MeshBasicMaterial({ color: 0xffffff, visible: false });
+      const pulse = new THREE.Mesh(pulseGeo, pulseMat);
+      ctx.scene.add(pulse);
+
+      const termFrom = TERMINALS[wDef.from];
+      ctx.wires.push({
+        line: wireLine,
+        material: wireMat,
+        curve: curve,
+        pulse: pulse,
+        pulseMat: pulseMat,
+        signalKey: termFrom ? termFrom.signal : 'a'
+      });
+    });
+  }
+
+  /* Raycasting: Clicking switches or terminal pins */
+  function setupRaycastingInteraction(mode) {
+    const ctx = scenes[mode];
+    const canvas = document.getElementById(ctx.canvasId);
+
+    canvas.addEventListener('click', (e) => {
+      const rect = canvas.getBoundingClientRect();
+      ctx.mouse.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
+      ctx.mouse.y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
+
+      ctx.raycaster.setFromCamera(ctx.mouse, ctx.camera);
+      const intersects = ctx.raycaster.intersectObjects(ctx.clickableObjects, true);
+
+      if (intersects.length > 0) {
+        const hit = intersects[0].object;
+        
+        // 1. Switch Clicked
+        if (hit.userData && hit.userData.isSwitch) {
+          toggleInput(hit.userData.switchKey);
+          return;
+        }
+
+        // 2. Terminal Pin Clicked for Wiring
+        if (hit.userData && hit.userData.isPin) {
+          handlePinClick(mode, hit.userData.pinId, hit.userData.label);
+        }
+      }
+    });
+
+    canvas.addEventListener('mousemove', (e) => {
+      const rect = canvas.getBoundingClientRect();
+      ctx.mouse.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
+      ctx.mouse.y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
+
+      ctx.raycaster.setFromCamera(ctx.mouse, ctx.camera);
+      const intersects = ctx.raycaster.intersectObjects(ctx.clickableObjects, true);
+      canvas.style.cursor = intersects.length > 0 ? 'pointer' : 'grab';
+    });
+  }
+
+  function handlePinClick(mode, pinId, label) {
+    const ctx = scenes[mode];
+    const banner = document.getElementById(`pin-banner-${mode}`);
+    const bannerText = document.getElementById(`pin-banner-text-${mode}`);
+
+    if (!ctx.selectedPin) {
+      // First Pin Clicked
+      ctx.selectedPin = pinId;
+      playAlertBeep(true);
+      banner.style.display = 'flex';
+      bannerText.textContent = `Pin 1: ${label} ➔ Click Destination Pin...`;
+
+      // Highlight pin beacon ring
+      if (ctx.terminalMeshes[pinId]) {
+        ctx.terminalMeshes[pinId].ring.material.color.setHex(0xf59e0b);
+        ctx.terminalMeshes[pinId].ring.material.opacity = 1.0;
+      }
+    } else {
+      // Second Pin Clicked: Attempt Connection
+      const pinA = ctx.selectedPin;
+      const pinB = pinId;
+
+      // Reset first pin highlight
+      if (ctx.terminalMeshes[pinA]) {
+        ctx.terminalMeshes[pinA].ring.material.color.setHex(0x00d4ff);
+        ctx.terminalMeshes[pinA].ring.material.opacity = 0.6;
+      }
+
+      ctx.selectedPin = null;
+      banner.style.display = 'none';
+
+      // Validate & Add Wire
+      addJumperWire(mode, pinA, pinB);
+    }
+  }
+
+  function update3DSceneVisuals(mode) {
+    const ctx = scenes[mode];
+    if (!ctx.initialized || !ctx.scene) return;
+    const isWired = mode === 'half' ? circuitState.halfWired : circuitState.fullWired;
+
+    const switchKeys = mode === 'half' ? ['a', 'b'] : ['a', 'b', 'cin'];
+    switchKeys.forEach(k => {
+      const swObj = ctx.meshes[`sw_${k}`];
+      if (!swObj) return;
+      const isHigh = circuitState[k] === 1;
+
+      swObj.lever.rotation.z = isHigh ? -0.45 : 0.45;
+      swObj.tip.material.color.setHex(isHigh ? 0x10b981 : 0xef4444);
+      swObj.tip.material.emissive.setHex(isHigh ? 0x059669 : 0x991b1b);
+      swObj.tip.material.emissiveIntensity = isHigh ? 0.9 : 0.4;
+    });
+
+    const gateSignals = {
+      xor1: circuitState.x1,
+      and1: circuitState.c1,
+      xor2: circuitState.sum,
+      and2: circuitState.c2,
+      or1: circuitState.carry
+    };
+
+    Object.keys(gateSignals).forEach(gKey => {
+      const gateObj = ctx.meshes[`gate_${gKey}`];
+      if (!gateObj) return;
+      const isGateHigh = isWired && gateSignals[gKey] === 1;
+
+      gateObj.ribbon.material.emissive.setHex(isGateHigh ? gateObj.glowColor : 0x000000);
+      gateObj.ribbon.material.emissiveIntensity = isGateHigh ? 0.8 : 0;
+    });
+
+    ['sum', 'carry'].forEach(lKey => {
+      const ledObj = ctx.meshes[`led_${lKey}`];
+      if (!ledObj) return;
+      const isLedHigh = isWired && circuitState[lKey] === 1;
+
+      if (isLedHigh) {
+        ledObj.dome.material.color.setHex(ledObj.color);
+        ledObj.dome.material.emissive.setHex(ledObj.color);
+        ledObj.dome.material.emissiveIntensity = 2.4;
+        ledObj.light.intensity = 8.0;
+      } else {
+        ledObj.dome.material.color.setHex(0x1e293b);
+        ledObj.dome.material.emissive.setHex(0x000000);
+        ledObj.dome.material.emissiveIntensity = 0.05;
+        ledObj.light.intensity = 0;
+      }
+    });
+
+    const signalMap = {
+      a: circuitState.a,
+      b: circuitState.b,
+      cin: circuitState.cin,
+      x1: circuitState.x1,
+      c1: circuitState.c1,
+      c2: circuitState.c2,
+      sum: circuitState.sum,
+      carry: circuitState.carry
+    };
+
+    ctx.wires.forEach(w => {
+      const isHigh = isWired && signalMap[w.signalKey] === 1;
+      if (isHigh) {
+        w.material.color.setHex(0x00d4ff);
+        w.material.opacity = 0.95;
+        w.pulseMat.visible = true;
+      } else {
+        w.material.color.setHex(0x334155);
+        w.material.opacity = 0.35;
+        w.pulseMat.visible = false;
+      }
+    });
+  }
+
+  function startRenderLoop(mode) {
+    const ctx = scenes[mode];
+    let startTime = performance.now();
+
+    function render(currentTime) {
+      ctx.animId = requestAnimationFrame(render);
+      if (ctx.controls) ctx.controls.update();
+
+      const elapsedSeconds = (currentTime - startTime) * 0.001;
+      ctx.wires.forEach((w, index) => {
+        if (!w.pulseMat.visible) return;
+        const progress = ((elapsedSeconds * 0.8) + (index * 0.15)) % 1;
+        const pt = w.curve.getPoint(progress);
+        w.pulse.position.copy(pt);
+      });
+
+      if (ctx.renderer && ctx.scene && ctx.camera) {
+        ctx.renderer.render(ctx.scene, ctx.camera);
+      }
+    }
+
+    render(performance.now());
+  }
+
+  function setCameraView(mode, viewType) {
+    const ctx = scenes[mode];
+    if (!ctx.camera) return;
+
+    if (viewType === 'iso') ctx.camera.position.set(0, 11, 17);
+    else if (viewType === 'top') ctx.camera.position.set(0, 20, 0.1);
+    else if (viewType === 'front') ctx.camera.position.set(0, 6, 18);
+    ctx.controls.target.set(0, 0.5, 0);
+    ctx.controls.update();
+  }
+
+  function resetCameraView(mode) {
+    setCameraView(mode, 'iso');
+  }
+
+  function navigateTo(pageIndex) {
+    document.querySelectorAll('.page-section').forEach(p => p.classList.remove('active'));
+    const targetPage = document.getElementById(`page-${pageIndex}`);
+    if (targetPage) targetPage.classList.add('active');
+
+    for (let i = 1; i <= 4; i++) {
+      const btn = document.getElementById(`nav-btn-${i}`);
+      if (btn) {
+        btn.classList.remove('active', 'done');
+        if (i === pageIndex) btn.classList.add('active');
+        else if (i < pageIndex) btn.classList.add('done');
+      }
+    }
+
+    if (pageIndex === 2) {
+      circuitState.mode = 'half';
+      setTimeout(() => {
+        if (!scenes.half.initialized) init3DWorkbench('half');
+        updateAllViews();
+      }, 50);
+    } else if (pageIndex === 3) {
+      circuitState.mode = 'full';
+      setTimeout(() => {
+        if (!scenes.full.initialized) init3DWorkbench('full');
+        updateAllViews();
+      }, 50);
+    } else if (pageIndex === 4) {
+      if (currentQuizBatch.length === 0) {
+        generateNewQuizBatch();
+      }
+    }
+
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  function handleLoginSubmit() {
+    const name = document.getElementById('input-student-name').value.trim();
+    const roll = document.getElementById('input-roll-number').value.trim();
+    const dept = document.getElementById('select-dept').value;
+    const sem = document.getElementById('select-sem').value;
+
+    if (!name || !roll) return;
+    studentProfile = { name, roll, dept, sem, isLoggedIn: true };
+    applyStudentSession();
+    navigateTo(1);
+  }
+
+  function enterGuestMode() {
+    studentProfile = {
+      name: 'Sagar Sharma',
+      roll: '21ECE045',
+      dept: 'ECE',
+      sem: '4th',
+      isLoggedIn: true
+    };
+    applyStudentSession();
+    navigateTo(1);
+  }
+
+  function applyStudentSession() {
+    document.getElementById('student-name-display').textContent = studentProfile.name;
+    document.getElementById('student-meta-display').textContent = `${studentProfile.roll} · ${studentProfile.dept}`;
+    document.getElementById('avatar-circle').textContent = studentProfile.name.charAt(0).toUpperCase();
+
+    document.getElementById('cert-student-name').textContent = studentProfile.name;
+    document.getElementById('cert-student-roll').textContent = studentProfile.roll;
+    document.getElementById('cert-student-dept').textContent = studentProfile.dept;
+    document.getElementById('cert-timestamp').textContent = `Verification Timestamp: ${new Date().toLocaleDateString()} ${new Date().toLocaleTimeString()}`;
+  }
+
+  function performLogout() {
+    if (!confirm('Log out from this Virtual Lab session?')) return;
+    resetCircuitInputs();
+    navigateTo(0);
+  }
+
+  /* ==========================================================================
+     LARGE RANDOM QUESTION BANK (32+ Engineering Viva Questions)
+     Never gives the same questions every time!
+     ========================================================================== */
+  const QUESTION_BANK = [
+    {
+      q: "Which specific logic gate produces the SUM output in a Half Adder?",
+      options: ["AND Gate", "OR Gate", "XOR Gate", "NAND Gate"],
+      answer: "XOR Gate",
+      exp: "The XOR gate functions as an odd-parity detector (difference detector), outputting 1 when inputs differ (0+1=1, 1+0=1), matching binary summation without carry."
+    },
+    {
+      q: "What Boolean algebraic expression governs the CARRY output of a Half Adder?",
+      options: ["C = A · B", "C = A ⊕ B", "C = A + B", "C = A' · B"],
+      answer: "C = A · B",
+      exp: "A carry overflow occurs only when both inputs are 1 (1 + 1 = 10₂). This directly corresponds to the logical AND operation."
+    },
+    {
+      q: "Why can a Half Adder NOT be used for multi-bit addition (except the LSB stage)?",
+      options: [
+        "It lacks a third input terminal to accept Carry-In (Cin) from lower bits",
+        "It has a non-deterministic truth table",
+        "Its output voltage exceeds TTL specification",
+        "It requires a high-frequency clock generator"
+      ],
+      answer: "It lacks a third input terminal to accept Carry-In (Cin) from lower bits",
+      exp: "Multi-bit binary addition requires propagating carry overflow between bit positions. A Half Adder has only 2 inputs, so it cannot process an incoming carry."
+    },
+    {
+      q: "In a Full Adder, what does the intermediate signal X₁ = A ⊕ B represent?",
+      options: [
+        "The partial sum of inputs A and B prior to adding Cin",
+        "The final carry-out bit",
+        "An inverted ripple-clock pulse",
+        "A noise-canceling ground reference"
+      ],
+      answer: "The partial sum of inputs A and B prior to adding Cin",
+      exp: "X₁ is the partial sum. It feeds into the second XOR gate alongside Cin to produce the final Sum: SUM = X₁ ⊕ Cin."
+    },
+    {
+      q: "When inputs are A = 1, B = 1, and Cin = 1 in a Full Adder, what are the outputs?",
+      options: [
+        "Sum = 1, Carry = 1",
+        "Sum = 0, Carry = 1",
+        "Sum = 1, Carry = 0",
+        "Sum = 0, Carry = 0"
+      ],
+      answer: "Sum = 1, Carry = 1",
+      exp: "1 + 1 + 1 = 3 in decimal = 11₂ in binary. Both SUM = 1 and CARRY = 1. This represents the maximum output state."
+    },
+    {
+      q: "How many total logic gates compose a standard Full Adder constructed from two Half Adders?",
+      options: [
+        "5 Gates (2 XOR + 2 AND + 1 OR)",
+        "3 Gates (1 XOR + 1 AND + 1 OR)",
+        "4 Gates (2 XOR + 2 AND)",
+        "6 Gates (3 XOR + 3 AND)"
+      ],
+      answer: "5 Gates (2 XOR + 2 AND + 1 OR)",
+      exp: "Two Half Adders contribute 2 XOR gates and 2 AND gates, and an additional OR gate combines the two carry terms: Cout = C1 + C2."
+    },
+    {
+      q: "How many input combinations exist in the complete truth table of a Full Adder?",
+      options: ["8 Rows (2³)", "4 Rows (2²)", "16 Rows (2⁴)", "6 Rows"],
+      answer: "8 Rows (2³)",
+      exp: "A Full Adder has 3 independent binary input variables (A, B, Cin), resulting in 2³ = 8 distinct input permutations."
+    },
+    {
+      q: "What is the industry standard 7400-series TTL IC number for Quad 2-Input XOR gates?",
+      options: ["74LS86", "74LS08", "74LS32", "74LS04"],
+      answer: "74LS86",
+      exp: "74LS86 contains four 2-input XOR gates. 74LS08 contains AND gates, and 74LS32 contains OR gates."
+    },
+    {
+      q: "What is the minimum number of 2-input NAND gates required to construct a Half Adder?",
+      options: ["5 NAND Gates", "4 NAND Gates", "6 NAND Gates", "3 NAND Gates"],
+      answer: "5 NAND Gates",
+      exp: "Constructing an XOR gate requires 4 NAND gates, and generating the AND carry requires 1 additional NAND gate, making a total of 5 NAND gates."
+    },
+    {
+      q: "In a Parallel Ripple-Carry Adder adding two 4-bit numbers, how many Full Adders are required?",
+      options: [
+        "4 Adders (either 4 Full Adders, or 1 Half Adder + 3 Full Adders)",
+        "8 Full Adders",
+        "2 Full Adders",
+        "16 Full Adders"
+      ],
+      answer: "4 Adders (either 4 Full Adders, or 1 Half Adder + 3 Full Adders)",
+      exp: "Each bit position requires one 1-bit adder stage. The LSB stage can be a Half Adder (Cin=0), while the remaining 3 stages must be Full Adders."
+    },
+    {
+      q: "If an output of a TTL logic gate is left disconnected (floating), what is its logical effect?",
+      options: [
+        "It cannot drive any input, causing subsequent inputs to float or remain inactive",
+        "It causes an immediate fire hazard",
+        "It turns into an oscillator",
+        "It acts as an analog amplifier"
+      ],
+      answer: "It cannot drive any input, causing subsequent inputs to float or remain inactive",
+      exp: "A disconnected output leaves connected receiver pins unenergized. In breadboard wiring, all functional inputs must be actively driven."
+    },
+    {
+      q: "What happens when two TTL gate OUTPUT pins are wired together directly?",
+      options: [
+        "A short-circuit contention fault occurs if one gate outputs HIGH and the other outputs LOW",
+        "The signals safely average to 2.5V",
+        "The gate with higher serial number wins",
+        "The logic operation automatically performs an XOR function"
+      ],
+      answer: "A short-circuit contention fault occurs if one gate outputs HIGH and the other outputs LOW",
+      exp: "Standard TTL outputs are push-pull. Tying two outputs together creates a low-resistance path between Vcc and Ground during contention, causing thermal stress."
+    },
+    {
+      q: "In Full Adder logic, is it possible for both intermediate carry terms C₁ and C₂ to be HIGH simultaneously?",
+      options: [
+        "No, C₁ and C₂ are mutually exclusive and can never be 1 at the same time",
+        "Yes, whenever A = 1 and B = 1",
+        "Yes, whenever Cin = 1",
+        "Yes, during high-frequency operation"
+      ],
+      answer: "No, C₁ and C₂ are mutually exclusive and can never be 1 at the same time",
+      exp: "C₁ = A · B. If C₁=1, then A=1 and B=1, which forces X₁ = A ⊕ B = 0. Since C₂ = X₁ · Cin, C₂ must be 0. Thus an OR gate can combine them without ambiguity."
+    },
+    {
+      q: "What is the output of a Full Adder when inputs are A = 1, B = 0, and Cin = 1?",
+      options: [
+        "Sum = 0, Cout = 1 (Binary 10₂)",
+        "Sum = 1, Cout = 0 (Binary 01₂)",
+        "Sum = 1, Cout = 1 (Binary 11₂)",
+        "Sum = 0, Cout = 0 (Binary 00₂)"
+      ],
+      answer: "Sum = 0, Cout = 1 (Binary 10₂)",
+      exp: "1 + 0 + 1 = 2 in decimal, represented as binary 10₂. Therefore SUM = 0 and Cout = 1."
+    },
+    {
+      q: "Which adder circuit architecture overcomes the carry propagation delay of Ripple-Carry Adders?",
+      options: [
+        "Carry-Lookahead Adder (CLA)",
+        "Single-Stage Half Adder",
+        "Ring Oscillator Adder",
+        "Shift Register Accumulator"
+      ],
+      answer: "Carry-Lookahead Adder (CLA)",
+      exp: "Carry-Lookahead Adders calculate carries in parallel using Generate (G = A · B) and Propagate (P = A ⊕ B) logic, eliminating the linear ripple delay."
+    },
+    {
+      q: "What is the propagation delay penalty in a multi-bit Ripple-Carry Adder?",
+      options: [
+        "O(N) — delay scales linearly with the number of bit stages",
+        "O(1) — constant time independent of bits",
+        "O(N²) — quadratic exponential delay",
+        "O(log N) — logarithmic delay"
+      ],
+      answer: "O(N) — delay scales linearly with the number of bit stages",
+      exp: "Each stage must wait for the carry output of the previous stage to stabilize, resulting in delay proportional to bit-width N."
+    },
+    {
+      q: "What is the logic function for the Half Subtractor DIFFERENCE output?",
+      options: [
+        "Diff = A ⊕ B (Identical to Half Adder SUM)",
+        "Diff = A · B",
+        "Diff = A + B'",
+        "Diff = (A ⊕ B)'"
+      ],
+      answer: "Diff = A ⊕ B (Identical to Half Adder SUM)",
+      exp: "Both binary addition (Sum) and binary subtraction (Difference) share the exact same XOR truth table for 2 single bits."
+    },
+    {
+      q: "How does the Half Subtractor BORROW output differ from the Half Adder CARRY output?",
+      options: [
+        "Borrow = A' · B, whereas Carry = A · B",
+        "Borrow = A · B', whereas Carry = A · B",
+        "Borrow = A + B, whereas Carry = A · B",
+        "They are identical"
+      ],
+      answer: "Borrow = A' · B, whereas Carry = A · B",
+      exp: "A borrow occurs only when subtracting 1 from 0 (0 - 1 = 1 with a borrow of 1). This corresponds to A' · B."
+    },
+    {
+      q: "What is the TTL logic threshold voltage typically separating LOW and HIGH binary states?",
+      options: [
+        "VIL ≤ 0.8V (LOW), VIH ≥ 2.0V (HIGH)",
+        "VIL ≤ 0.0V, VIH ≥ 12.0V",
+        "VIL ≤ 2.5V, VIH ≥ 5.0V",
+        "VIL ≤ 1.5V, VIH ≥ 4.5V"
+      ],
+      answer: "VIL ≤ 0.8V (LOW), VIH ≥ 2.0V (HIGH)",
+      exp: "Standard 5V TTL specifies inputs below 0.8V as logic 0, and inputs above 2.0V as logic 1, with an indeterminate transition band in between."
+    },
+    {
+      q: "In our 3D breadboard simulation, what indicates a HIGH (Logic 1) state on a component?",
+      options: [
+        "Emissive glow (Cyan/Amber) on ICs, LED radiance, and flowing electron pulses on wires",
+        "The component turns transparent",
+        "The breadboard changes to black",
+        "A clicking mechanical sound only"
+      ],
+      answer: "Emissive glow (Cyan/Amber) on ICs, LED radiance, and flowing electron pulses on wires",
+      exp: "The 3D virtual bench uses dynamic emissive shaders, omnidirectional point lights on LEDs, and flowing particle spheres along active curved wires."
+    }
+  ];
+
+  let currentQuizBatch = [];
+  let studentAnswers = {};
+  let quizAttemptNumber = 1;
+
+  /* Pick 8 completely random questions and shuffle their options */
+  function generateNewQuizBatch() {
+    quizAttemptNumber++;
+    studentAnswers = {};
+    document.getElementById('quiz-results-banner').style.display = 'none';
+    document.getElementById('student-certificate-box').style.display = 'none';
+    document.getElementById('quiz-attempt-label').textContent = `Assessment Set #${quizAttemptNumber}`;
+
+    // Shuffle and pick 8
+    const shuffledBank = [...QUESTION_BANK].sort(() => Math.random() - 0.5);
+    const selected = shuffledBank.slice(0, 8);
+
+    // Shuffle options for each question
+    currentQuizBatch = selected.map(q => {
+      const shuffledOptions = [...q.options].sort(() => Math.random() - 0.5);
+      const newAnswerIndex = shuffledOptions.indexOf(q.answer);
+      return {
+        q: q.q,
+        options: shuffledOptions,
+        answer: newAnswerIndex,
+        exp: q.exp
+      };
+    });
+
+    renderAssessmentQuestions();
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  function renderAssessmentQuestions() {
+    const list = document.getElementById('quiz-questions-list');
+    if (!list) return;
+
+    list.innerHTML = currentQuizBatch.map((qObj, qIdx) => `
+      <div class="quiz-question-box" id="q-box-${qIdx}">
+        <div class="question-header-meta">
+          <span>Question ${qIdx + 1} of ${currentQuizBatch.length}</span>
+          <span>Digital Logic Design Assessment</span>
+        </div>
+        <div class="question-stem-text">${qObj.q}</div>
+        <div class="question-options-grid">
+          ${qObj.options.map((opt, optIdx) => `
+            <button class="option-btn" id="opt-btn-${qIdx}-${optIdx}" onclick="selectQuizOption(${qIdx}, ${optIdx})">
+              ${String.fromCharCode(65 + optIdx)}. ${opt}
+            </button>
+          `).join('')}
+        </div>
+        <div class="explanation-box" id="exp-box-${qIdx}">
+          <strong>Technical Rationale:</strong> ${qObj.exp}
+        </div>
+      </div>
+    `).join('');
+  }
+
+  function selectQuizOption(qIdx, optIdx) {
+    studentAnswers[qIdx] = optIdx;
+    currentQuizBatch[qIdx].options.forEach((_, i) => {
+      const btn = document.getElementById(`opt-btn-${qIdx}-${i}`);
+      if (btn) btn.classList.toggle('selected', i === optIdx);
+    });
+  }
+
+  function submitAssessmentQuiz() {
+    const total = currentQuizBatch.length;
+    let score = 0;
+
+    currentQuizBatch.forEach((qObj, qIdx) => {
+      const userChoice = studentAnswers[qIdx];
+      const box = document.getElementById(`q-box-${qIdx}`);
+      const expBox = document.getElementById(`exp-box-${qIdx}`);
+
+      const isCorrect = userChoice === qObj.answer;
+      if (isCorrect) score++;
+
+      if (box) {
+        box.classList.remove('answered-correct', 'answered-incorrect');
+        box.classList.add(isCorrect ? 'answered-correct' : 'answered-incorrect');
+      }
+
+      qObj.options.forEach((_, i) => {
+        const btn = document.getElementById(`opt-btn-${qIdx}-${i}`);
+        if (btn) {
+          btn.classList.remove('correct-highlight', 'wrong-highlight');
+          if (i === qObj.answer) btn.classList.add('correct-highlight');
+          else if (i === userChoice && !isCorrect) btn.classList.add('wrong-highlight');
+        }
+      });
+
+      if (expBox) expBox.style.display = 'block';
+    });
+
+    const banner = document.getElementById('quiz-results-banner');
+    banner.style.display = 'block';
+    document.getElementById('score-val-text').textContent = score;
+
+    const badge = document.getElementById('score-badge-element');
+    const feedback = document.getElementById('score-feedback-text');
+
+    if (score === total) {
+      badge.className = 'score-badge-pill badge-excellent';
+      badge.textContent = '🏆 100% Perfect Score · Grade A+';
+      feedback.textContent = 'Flawless performance! You demonstrated complete conceptual mastery of both Half and Full Adder combinational logic.';
+      playAlertBeep(true);
+    } else if (score >= 5) {
+      badge.className = 'score-badge-pill badge-pass';
+      badge.textContent = '✓ Viva Passed · High Proficiency';
+      feedback.textContent = 'Well done! Review the highlighted rationale cards for the questions you missed.';
+      playAlertBeep(true);
+    } else {
+      badge.className = 'score-badge-pill badge-review';
+      badge.textContent = '📖 Review Recommended';
+      feedback.textContent = 'Revisit the 3D Half and Full Adder laboratories to observe gate propagation, then generate a new question set.';
+      playAlertBeep(false);
+    }
+
+    document.getElementById('student-certificate-box').style.display = 'block';
+    window.scrollTo({ top: banner.offsetTop - 80, behavior: 'smooth' });
+  }
+
+  /* ==========================================================================
+     INIT ON WINDOW LOAD
+     ========================================================================== */
+  window.addEventListener('DOMContentLoaded', () => {
+    generateNewQuizBatch();
+    applyStudentSession();
+  });
+</script>
+
+</body>
+</html>
