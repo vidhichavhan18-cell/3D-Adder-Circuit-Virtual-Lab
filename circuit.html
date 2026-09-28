@@ -1,0 +1,804 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>AdderVerse — 3D Circuit Workbench</title>
+  <link rel="icon" type="image/png" href="logo.png"/>
+
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+
+  <!-- Stylesheets -->
+  <link rel="stylesheet" href="css/main.css"/>
+  <link rel="stylesheet" href="css/circuit.css"/>
+
+  <!-- Three.js + OrbitControls: Local first with CDN fallback -->
+  <script src="js/three.min.js"></script>
+  <script src="js/OrbitControls.js"></script>
+  <script>
+    if (typeof THREE === 'undefined') {
+      document.write('<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"><\/script>');
+      document.write('<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"><\/script>');
+    }
+  </script>
+</head>
+<body>
+
+<div class="tech-bg"></div>
+
+<!-- ==========================================================================
+     INCORRECT CONNECTION & FAULT NOTIFICATION ALERT MODAL
+     ========================================================================== -->
+<div class="alert-modal-backdrop" id="wiring-alert-modal">
+  <div class="alert-modal-box" id="modal-box-theme">
+    
+    <div class="alert-modal-header">
+      <div class="alert-icon-circle" id="alert-modal-icon">⚠️</div>
+      <div>
+        <div class="alert-modal-tag" id="alert-modal-tag">CIRCUIT FAULT NOTIFICATION</div>
+        <h3 class="alert-modal-title" id="alert-modal-title">Incorrect Connection Detected</h3>
+      </div>
+    </div>
+
+    <div class="alert-modal-content">
+      <p id="alert-modal-message">
+        You attempted an invalid electrical connection on the breadboard.
+      </p>
+
+      <div class="alert-modal-fault-code" id="alert-modal-terminals">
+        Terminal Pin A ➔ Terminal Pin B
+      </div>
+
+      <div class="alert-modal-advice" id="alert-modal-hint">
+        💡 Engineering Guideline: Connect the output pin of Switch A to input 1 of the XOR gate.
+      </div>
+    </div>
+
+    <div class="alert-modal-footer">
+      <button class="btn-alert-dismiss" onclick="dismissWiringAlert()">
+        Acknowledge &amp; Try Again
+      </button>
+    </div>
+
+  </div>
+</div>
+
+<!-- ==========================================================================
+     TOP NAVBAR
+     ========================================================================== -->
+<header class="lab-navbar" id="main-navbar">
+  <div class="container nav-container">
+    
+    <a href="circuit.html" class="brand-box">
+      <img src="logo.png" alt="AdderVerse Logo" class="brand-logo-img"/>
+      <div>
+        <div class="brand-title">
+          AdderVerse <span class="tag">3D Virtual Lab</span>
+        </div>
+        <div class="brand-dept">3D Interactive Adder Circuit Lab</div>
+      </div>
+    </a>
+
+    <!-- Navigation Tabs -->
+    <nav class="nav-steps">
+      <button class="step-link active" id="bench-btn-half" onclick="switchCircuit('half')">
+        <span class="step-num">1</span>
+        <span>Half Adder 3D</span>
+      </button>
+      <button class="step-link" id="bench-btn-full" onclick="switchCircuit('full')">
+        <span class="step-num">2</span>
+        <span>Full Adder 3D</span>
+      </button>
+      <a href="practice.html" class="step-link">
+        <span class="step-num">3</span>
+        <span>Practice &amp; Viva</span>
+      </a>
+    </nav>
+
+    <!-- Nav Actions -->
+    <div class="nav-actions">
+      <button class="spectator-nav-btn" id="btn-spectator-mode" onclick="toggleSpectatorPanel()" title="Instructor Spectator & Remote Testing">
+        <span class="spec-icon">👨‍🏫</span>
+        <span class="spec-label">Spectator Mode</span>
+        <span class="spec-pulse-badge" id="spec-live-pill">LIVE SYNC</span>
+      </button>
+
+      <div class="student-badge" id="student-nav-badge">
+        <div class="student-avatar" id="avatar-circle">V</div>
+        <div>
+          <div style="font-weight:700; line-height:1.2;" id="student-name-display">Vidhi Chavhan</div>
+          <div style="font-size:10px; color:var(--text-dim);" id="student-meta-display">21CSE045 · CSE</div>
+        </div>
+      </div>
+      <a href="index.html" class="btn-logout" onclick="performLogout(); return false;" title="Exit Lab Session">
+        <span>Logout</span> ⎋
+      </a>
+    </div>
+
+  </div>
+</header>
+
+<!-- ==========================================================================
+     INSTRUCTOR SPECTATOR & MULTI-USER REVIEW PANEL
+     ========================================================================== -->
+<div class="spectator-drawer-backdrop" id="spectator-drawer-backdrop" onclick="closeSpectatorPanel(event)">
+  <div class="spectator-drawer" id="spectator-drawer" onclick="event.stopPropagation()">
+    <div class="spectator-header">
+      <div style="display:flex; align-items:center; gap:10px;">
+        <span style="font-size:22px;">👨‍🏫</span>
+        <div>
+          <div class="spectator-title">Instructor Spectator Mode</div>
+          <div class="spectator-subtitle">Multi-User Live Review &amp; Remote Testing</div>
+        </div>
+      </div>
+      <button class="spectator-close-btn" onclick="toggleSpectatorPanel()">✕</button>
+    </div>
+
+    <div class="spectator-body">
+      <!-- Live Sync Status Banner -->
+      <div class="spectator-status-banner">
+        <div class="status-indicator-group">
+          <span class="live-pulse-dot"></span>
+          <div>
+            <div style="font-weight:700; font-size:12px; color:var(--green);" id="spectator-connection-status">
+              ● Connected to Student Session
+            </div>
+            <div style="font-size:11px; color:var(--text-dim);" id="spectator-session-sync-time">
+              Real-time sync via BroadcastChannel
+            </div>
+          </div>
+        </div>
+        <button class="tool-btn" style="padding:4px 8px; font-size:11px;" onclick="openSpectatorWindow()">
+          🗗 Detach Window
+        </button>
+      </div>
+
+      <!-- Active Evaluator / Instructor Profile -->
+      <div class="spectator-section" id="spec-evaluator-card" style="background: rgba(168, 85, 247, 0.08); border-color: rgba(168, 85, 247, 0.3);">
+        <div class="spectator-section-title" style="color: #d8b4fe; display:flex; justify-content:space-between; align-items:center;">
+          <span>👨‍🏫 Active Evaluator Profile</span>
+          <span style="font-size:10px; background:rgba(168,85,247,0.25); color:#e9d5ff; padding:2px 6px; border-radius:4px; font-weight:700;">AUTHENTICATED</span>
+        </div>
+        <div class="spec-info-grid">
+          <div><span class="spec-label-dim">Faculty:</span> <strong id="spec-evaluator-name">Dr. A. Sharma</strong></div>
+          <div><span class="spec-label-dim">Faculty ID:</span> <strong id="spec-evaluator-id">FAC-8842</strong></div>
+          <div><span class="spec-label-dim">Designation:</span> <strong id="spec-evaluator-role">Course Professor</strong></div>
+          <div><span class="spec-label-dim">Lab Room:</span> <strong id="spec-evaluator-room" style="color:var(--purple);">LAB-CS301</strong></div>
+        </div>
+      </div>
+
+      <!-- Observed Student Info Card -->
+      <div class="spectator-section">
+        <div class="spectator-section-title">Observed Student Profile</div>
+        <div class="spec-info-grid">
+          <div><span class="spec-label-dim">Student:</span> <strong id="spec-student-name">Vidhi Chavhan</strong></div>
+          <div><span class="spec-label-dim">Roll No:</span> <strong id="spec-student-roll">21CSE045</strong></div>
+          <div><span class="spec-label-dim">Dept:</span> <strong id="spec-student-dept">CSE</strong></div>
+          <div><span class="spec-label-dim">Active Bench:</span> <strong id="spec-active-bench" style="color:var(--cyan);">Half Adder 3D</strong></div>
+        </div>
+      </div>
+
+      <!-- Live Wiring Inspection & Progress -->
+      <div class="spectator-section">
+        <div class="spectator-section-title" style="display:flex; justify-content:space-between; align-items:center;">
+          <span>Student Wiring Progress</span>
+          <span id="spec-wire-badge" class="spec-badge-pill">6 / 6 Connected</span>
+        </div>
+        <div class="spec-progress-bar-bg">
+          <div class="spec-progress-bar-fill" id="spec-wire-progress-bar" style="width: 100%;"></div>
+        </div>
+        <div id="spec-wiring-status-msg" style="font-size:12px; margin-top:8px; color:var(--green); font-weight:600;">
+          Circuit Closed &amp; Operational
+        </div>
+
+        <details class="spec-wires-collapse" style="margin-top:10px;">
+          <summary style="font-size:11px; color:var(--text-muted); cursor:pointer; font-weight:600;">
+            🔍 View Active Wire Connections (<span id="spec-wire-count-label">6</span>)
+          </summary>
+          <div class="spec-wire-list" id="spec-wire-list-items" style="font-family:var(--mono); font-size:11px; margin-top:6px; color:var(--text-dim); max-height:110px; overflow-y:auto;">
+            <!-- Dynamic wire connections rendered here -->
+          </div>
+        </details>
+      </div>
+
+      <!-- REMOTE TESTING & TRIGGER SEQUENCES (Problem Statement Feature) -->
+      <div class="spectator-section spec-trigger-box">
+        <div class="spectator-section-title" style="color:var(--purple); display:flex; align-items:center; gap:6px;">
+          <span>⚡</span> Remote Input Sequences &amp; Testing
+        </div>
+        <p style="font-size:11px; color:var(--text-muted); margin-bottom:12px;">
+          Remotely trigger input test vectors on the student's 3D circuit to verify signal propagation and truth-table accuracy.
+        </p>
+
+        <!-- Half Adder Vector Triggers -->
+        <div id="spec-triggers-half">
+          <div style="font-size:11px; font-weight:700; color:var(--text-dim); margin-bottom:6px;">
+            HALF ADDER TEST VECTORS:
+          </div>
+          <div class="spec-btn-grid">
+            <button class="spec-vector-btn" onclick="instructorTriggerInputs(0, 0, 0)">A=0, B=0</button>
+            <button class="spec-vector-btn" onclick="instructorTriggerInputs(0, 1, 0)">A=0, B=1</button>
+            <button class="spec-vector-btn" onclick="instructorTriggerInputs(1, 0, 0)">A=1, B=0</button>
+            <button class="spec-vector-btn" onclick="instructorTriggerInputs(1, 1, 0)">A=1, B=1</button>
+          </div>
+        </div>
+
+        <!-- Full Adder Vector Triggers -->
+        <div id="spec-triggers-full" style="display:none; margin-top:10px;">
+          <div style="font-size:11px; font-weight:700; color:var(--text-dim); margin-bottom:6px;">
+            FULL ADDER TEST VECTORS (A, B, Cin):
+          </div>
+          <div class="spec-btn-grid" style="grid-template-columns: repeat(4, 1fr);">
+            <button class="spec-vector-btn" onclick="instructorTriggerInputs(0, 0, 0)">000</button>
+            <button class="spec-vector-btn" onclick="instructorTriggerInputs(0, 0, 1)">001</button>
+            <button class="spec-vector-btn" onclick="instructorTriggerInputs(0, 1, 0)">010</button>
+            <button class="spec-vector-btn" onclick="instructorTriggerInputs(0, 1, 1)">011</button>
+            <button class="spec-vector-btn" onclick="instructorTriggerInputs(1, 0, 0)">100</button>
+            <button class="spec-vector-btn" onclick="instructorTriggerInputs(1, 0, 1)">101</button>
+            <button class="spec-vector-btn" onclick="instructorTriggerInputs(1, 1, 0)">110</button>
+            <button class="spec-vector-btn" onclick="instructorTriggerInputs(1, 1, 1)">111</button>
+          </div>
+        </div>
+
+        <!-- Automated Full Suite Execution -->
+        <div style="margin-top:14px;">
+          <button class="tool-btn primary" id="btn-run-remote-suite" style="width:100%; justify-content:center; padding:10px;" onclick="runRemoteVerificationSuite()">
+            <span>▶ Run Automated Test Sequence</span>
+          </button>
+        </div>
+
+        <!-- Live Output Monitor for Instructor -->
+        <div class="spec-monitor-panel" id="spec-monitor-panel">
+          <div style="font-size:11px; color:var(--text-dim); text-transform:uppercase; letter-spacing:0.06em;">
+            Student Circuit Output Feedback
+          </div>
+          <div class="spec-monitor-results" id="spec-monitor-results">
+            Waiting for remote trigger...
+          </div>
+        </div>
+      </div>
+
+      <!-- Instructor Evaluation & Stamping -->
+      <div class="spectator-section">
+        <div class="spectator-section-title">Instructor Sign-Off &amp; Stamping</div>
+        <div class="form-group" style="margin-bottom:8px;">
+          <label class="form-label" style="font-size:11px;">Instructor / Reviewer Name</label>
+          <input type="text" id="input-instructor-name" class="form-input" style="padding:6px 10px; font-size:12px;" value="Prof. Evaluator" placeholder="e.g. Dr. H. Patel"/>
+        </div>
+        <div class="form-group" style="margin-bottom:8px;">
+          <label class="form-label" style="font-size:11px;">Evaluation Verdict</label>
+          <select id="select-instructor-verdict" class="form-select" style="padding:6px 10px; font-size:12px;">
+            <option value="VERIFIED_PASS">Verified &amp; Approved (Grade A+)</option>
+            <option value="VERIFIED_MERIT">Approved with Merit (Grade A)</option>
+            <option value="RETEST_REQUIRED">Needs Re-wiring / Corrections</option>
+          </select>
+        </div>
+        <button class="tool-btn" style="width:100%; justify-content:center; background:linear-gradient(135deg, rgba(16,185,129,0.2), rgba(0,212,255,0.2)); border:1px solid var(--green); color:var(--green); font-weight:700;" onclick="stampStudentCertificate()">
+          <span>✍️ Stamp &amp; Sign Student Certificate</span>
+        </button>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- ==========================================================================
+     MAIN CIRCUIT WORKBENCH CONTAINER
+     ========================================================================== -->
+<main class="workbench-container container">
+
+  <!-- ==================== HALF ADDER SECTION ==================== -->
+  <div id="section-half-adder">
+    <div class="workbench-header">
+      <div>
+        <div class="workbench-heading-title">
+          <span>Half Adder 3D Laboratory</span>
+          <span class="circuit-spec-badge badge-half">2-Bit Input Bench</span>
+        </div>
+        <p class="workbench-heading-desc">
+          Interactive breadboard circuit: Wire component pins, detect faults, and flip switches in 3D to observe logic propagation.
+        </p>
+      </div>
+
+      <div class="workbench-action-toolbar">
+        <button class="tool-btn primary" onclick="autoWireReference('half')">
+          <span>⚡ Auto-Wire Reference</span>
+        </button>
+        <button class="tool-btn danger" onclick="clearAllWires('half')">
+          <span>✂️ Clear Wires</span>
+        </button>
+        <button class="tool-btn" id="btn-autocycle-half" onclick="toggleAutoSequence('half')">
+          <span>▶ Auto Cycle States</span>
+        </button>
+        <button class="tool-btn" onclick="toggleSchematicView('half')">
+          <span>⎇ 2D Schematic View</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Wiring Status Strip -->
+    <div class="wiring-status-strip state-verified" id="wiring-strip-half">
+      <div class="wiring-guide-left">
+        <span class="wiring-mode-pill pill-complete" id="wiring-pill-half">CIRCUIT OPERATIONAL</span>
+        <div>
+          <div class="wiring-instructions-text" id="wiring-task-half">
+            👉 Task: Connect Switch A to XOR Input 1 (Click terminal pins in 3D or use the connector panel below).
+          </div>
+          <div class="wiring-instructions-sub">
+            Rule: Connect Output pins to Input pins. Output-to-Output or Input-to-Input short circuits trigger an alert.
+          </div>
+        </div>
+      </div>
+      <div class="wiring-progress-counter">
+        <span style="color:var(--text-muted); font-size:11px;">JUMPERS:</span>
+        <span id="wire-counter-half" style="color:var(--green);">6 / 6 Connected</span>
+      </div>
+    </div>
+
+    <!-- 3D Workbench Dashboard -->
+    <div class="workbench-dashboard">
+      <div>
+        <div class="viewport-3d-wrapper" id="viewport-half">
+          <canvas id="canvas-half" class="canvas-3d"></canvas>
+          
+          <div class="canvas-overlay-badges">
+            <span class="circuit-spec-badge badge-half">7486 XOR + 7408 AND</span>
+            <span class="circuit-spec-badge" style="background:rgba(0,0,0,0.6); color:var(--text-dim);" id="pin-banner-half">
+              <span id="pin-banner-text-half">Click Pin to Wire</span>
+            </span>
+          </div>
+
+          <div class="canvas-cam-controls-hint">
+            <span>🖱️ Left-Click + Drag: Rotate 3D</span> · <span>Right-Click: Pan</span> · <span>Scroll: Zoom</span>
+          </div>
+        </div>
+
+        <!-- Wire Connector Panel -->
+        <div class="wire-connector-box">
+          <div class="connector-select-group">
+            <label style="font-size:11px; font-weight:700; color:var(--text-muted);">From:</label>
+            <select id="select-half-from" class="form-select" style="padding:6px 10px; font-size:12px;">
+              <option value="sw_a">Switch A Output</option>
+              <option value="sw_b">Switch B Output</option>
+              <option value="xor1_out">XOR Output (Pin 3)</option>
+              <option value="and1_out">AND Output (Pin 3)</option>
+            </select>
+
+            <span style="color:var(--text-dim);">➔</span>
+
+            <label style="font-size:11px; font-weight:700; color:var(--text-muted);">To:</label>
+            <select id="select-half-to" class="form-select" style="padding:6px 10px; font-size:12px;">
+              <option value="xor1_in1">XOR Gate Pin 1 (1A)</option>
+              <option value="xor1_in2">XOR Gate Pin 2 (1B)</option>
+              <option value="and1_in1">AND Gate Pin 1 (1A)</option>
+              <option value="and1_in2">AND Gate Pin 2 (1B)</option>
+              <option value="led_sum">SUM LED Anode</option>
+              <option value="led_carry">CARRY LED Anode</option>
+            </select>
+
+            <button class="tool-btn" style="padding:6px 12px;" onclick="connectFromSelect('half')">
+              🔌 Connect Jumper
+            </button>
+          </div>
+
+          <div style="display:flex; gap:6px;">
+            <button class="tool-btn" style="padding:4px 8px; font-size:11px;" onclick="setCameraView('half', 'iso')">Isometric</button>
+            <button class="tool-btn" style="padding:4px 8px; font-size:11px;" onclick="setCameraView('half', 'top')">Top View</button>
+            <button class="tool-btn" style="padding:4px 8px; font-size:11px;" onclick="resetCameraView('half')">Reset</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Controls Sidebar -->
+      <div class="circuit-controls-sidebar">
+        <!-- Input Switches Card -->
+        <div class="glass-card">
+          <div class="glass-card-header">
+            <span>Binary Inputs (Click to Toggle)</span>
+            <span class="mono" style="color:var(--cyan); font-size:11px;">LOGIC SIGNALS</span>
+          </div>
+          <div class="glass-card-body">
+            <div class="inputs-switch-grid">
+              <div class="switch-control-card" id="sw-half-a" onclick="toggleInput('a')">
+                <div class="switch-card-label">Input A</div>
+                <div class="switch-card-state" id="num-half-a">0</div>
+              </div>
+              <div class="switch-control-card" id="sw-half-b" onclick="toggleInput('b')">
+                <div class="switch-card-label">Input B</div>
+                <div class="switch-card-state" id="num-half-b">0</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Gate Signals -->
+        <div class="glass-card">
+          <div class="glass-card-header">
+            <span>Internal Gate Signals</span>
+            <span class="mono" style="font-size:10px; color:var(--text-dim);">PROPAGATION</span>
+          </div>
+          <div class="glass-card-body">
+            <div class="gate-indicators-grid">
+              <div class="gate-monitor-pill" id="gate-card-h-xor">
+                <span>74LS86 XOR (A⊕B)</span>
+                <strong id="val-gate-h-xor" class="mono">0</strong>
+              </div>
+              <div class="gate-monitor-pill" id="gate-card-h-and">
+                <span>74LS08 AND (A·B)</span>
+                <strong id="val-gate-h-and" class="mono">0</strong>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Output LEDs -->
+        <div class="glass-card">
+          <div class="glass-card-header">
+            <span>Circuit Outputs</span>
+            <span class="mono" style="font-size:10px; color:var(--green);">MONITOR</span>
+          </div>
+          <div class="glass-card-body">
+            <div class="outputs-leds-grid">
+              <div class="led-output-card" id="led-card-h-sum">
+                <div class="led-bulb-circle"></div>
+                <div style="font-weight:700; font-size:13px; color:var(--cyan);">SUM</div>
+                <div style="font-size:11px; color:var(--text-muted); margin-top:2px;" id="status-h-sum">LOW (0 V)</div>
+              </div>
+              <div class="led-output-card" id="led-card-h-carry">
+                <div class="led-bulb-circle"></div>
+                <div style="font-weight:700; font-size:13px; color:var(--amber);">CARRY</div>
+                <div style="font-size:11px; color:var(--text-muted); margin-top:2px;" id="status-h-carry">LOW (0 V)</div>
+              </div>
+            </div>
+
+            <div style="margin-top:14px; padding:10px; border-radius:6px; background:rgba(0,0,0,0.3); font-family:var(--mono); font-size:11px; text-align:center;" id="math-eval-half">
+              SUM = 0 ⊕ 0 = 0 &nbsp;|&nbsp; CARRY = 0 · 0 = 0
+            </div>
+          </div>
+        </div>
+
+        <!-- Truth Table -->
+        <div class="glass-card">
+          <div class="glass-card-header">
+            <span>Half Adder Truth Table</span>
+            <span class="mono" style="font-size:10px;">VERIFIED</span>
+          </div>
+          <div class="truth-table-scroll">
+            <table class="truth-table" id="table-half">
+              <thead>
+                <tr><th>#</th><th>A</th><th>B</th><th>SUM</th><th>CARRY</th><th>State</th></tr>
+              </thead>
+              <tbody>
+                <tr class="active-row"><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0 + 0 = 0</td></tr>
+                <tr><td>1</td><td>0</td><td>1</td><td>1</td><td>0</td><td>0 + 1 = 1</td></tr>
+                <tr><td>2</td><td>1</td><td>0</td><td>1</td><td>0</td><td>1 + 0 = 1</td></tr>
+                <tr><td>3</td><td>1</td><td>1</td><td>0</td><td>1</td><td>1 + 1 = 2 (10₂)</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- 2D Schematic Card (Collapsible) -->
+    <div class="schematic-view-card glass-card" id="schematic-card-half">
+      <div class="glass-card-header">
+        <span>2D Logic Diagram: Half Adder Circuit</span>
+        <button class="tool-btn" style="padding:2px 8px; font-size:11px;" onclick="toggleSchematicView('half')">Close ✕</button>
+      </div>
+      <div class="glass-card-body" style="text-align:center;">
+        <svg viewBox="0 0 650 220" style="width:100%; max-width:600px; height:auto;">
+          <!-- A Wire -->
+          <text x="30" y="55" fill="#f1f5f9" font-weight="700">Input A</text>
+          <line x1="90" y1="50" x2="260" y2="50" stroke="#00d4ff" stroke-width="3"/>
+          <line x1="140" y1="50" x2="140" y2="150" stroke="#00d4ff" stroke-width="3"/>
+          <line x1="140" y1="150" x2="260" y2="150" stroke="#00d4ff" stroke-width="3"/>
+
+          <!-- B Wire -->
+          <text x="30" y="95" fill="#f1f5f9" font-weight="700">Input B</text>
+          <line x1="90" y1="90" x2="260" y2="90" stroke="#00d4ff" stroke-width="3"/>
+          <line x1="170" y1="90" x2="170" y2="180" stroke="#00d4ff" stroke-width="3"/>
+          <line x1="170" y1="180" x2="260" y2="180" stroke="#00d4ff" stroke-width="3"/>
+
+          <!-- XOR Gate Symbol -->
+          <rect x="260" y="30" width="110" height="80" rx="8" fill="#13243d" stroke="#00d4ff" stroke-width="2"/>
+          <text x="315" y="75" fill="#00d4ff" font-weight="800" text-anchor="middle" font-size="16">XOR</text>
+
+          <!-- AND Gate Symbol -->
+          <rect x="260" y="130" width="110" height="75" rx="8" fill="#13243d" stroke="#f59e0b" stroke-width="2"/>
+          <text x="315" y="173" fill="#f59e0b" font-weight="800" text-anchor="middle" font-size="16">AND</text>
+
+          <!-- Outputs -->
+          <line x1="370" y1="70" x2="480" y2="70" stroke="#00d4ff" stroke-width="3"/>
+          <text x="495" y="75" fill="#00d4ff" font-weight="800" font-size="15">SUM = A ⊕ B</text>
+
+          <line x1="370" y1="168" x2="480" y2="168" stroke="#f59e0b" stroke-width="3"/>
+          <text x="495" y="173" fill="#f59e0b" font-weight="800" font-size="15">CARRY = A · B</text>
+        </svg>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== FULL ADDER SECTION ==================== -->
+  <div id="section-full-adder" style="display:none;">
+    <div class="workbench-header">
+      <div>
+        <div class="workbench-heading-title">
+          <span>Full Adder 3D Laboratory</span>
+          <span class="circuit-spec-badge badge-full">3-Bit Input Bench</span>
+        </div>
+        <p class="workbench-heading-desc">
+          Cascaded addition with Carry-in ($C_{in}$): 2 XOR gates, 2 AND gates, and 1 OR gate for parallel ripple-carry arithmetic.
+        </p>
+      </div>
+
+      <div class="workbench-action-toolbar">
+        <button class="tool-btn primary" onclick="autoWireReference('full')">
+          <span>⚡ Auto-Wire Reference</span>
+        </button>
+        <button class="tool-btn danger" onclick="clearAllWires('full')">
+          <span>✂️ Clear Wires</span>
+        </button>
+        <button class="tool-btn" id="btn-autocycle-full" onclick="toggleAutoSequence('full')">
+          <span>▶ Auto Cycle States</span>
+        </button>
+        <button class="tool-btn" onclick="toggleSchematicView('full')">
+          <span>⎇ 2D Schematic View</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Wiring Status Strip -->
+    <div class="wiring-status-strip state-verified" id="wiring-strip-full">
+      <div class="wiring-guide-left">
+        <span class="wiring-mode-pill pill-complete" id="wiring-pill-full">CIRCUIT OPERATIONAL</span>
+        <div>
+          <div class="wiring-instructions-text" id="wiring-task-full">
+            All 12 jumper wires connected. Flip inputs to observe Sum and Carry-out propagation.
+          </div>
+          <div class="wiring-instructions-sub">
+            Rule: Connect Output pins to Input pins. Output-to-Output or Input-to-Input short circuits trigger an alert.
+          </div>
+        </div>
+      </div>
+      <div class="wiring-progress-counter">
+        <span style="color:var(--text-muted); font-size:11px;">JUMPERS:</span>
+        <span id="wire-counter-full" style="color:var(--green);">12 / 12 Connected</span>
+      </div>
+    </div>
+
+    <!-- 3D Workbench Dashboard -->
+    <div class="workbench-dashboard">
+      <div>
+        <div class="viewport-3d-wrapper" id="viewport-full">
+          <canvas id="canvas-full" class="canvas-3d"></canvas>
+
+          <div class="canvas-overlay-badges">
+            <span class="circuit-spec-badge badge-full">2x XOR + 2x AND + 1x OR</span>
+            <span class="circuit-spec-badge" style="background:rgba(0,0,0,0.6); color:var(--text-dim);" id="pin-banner-full">
+              <span id="pin-banner-text-full">Click Pin to Wire</span>
+            </span>
+          </div>
+
+          <div class="canvas-cam-controls-hint">
+            <span>🖱️ Left-Click + Drag: Rotate 3D</span> · <span>Right-Click: Pan</span> · <span>Scroll: Zoom</span>
+          </div>
+        </div>
+
+        <!-- Wire Connector Panel -->
+        <div class="wire-connector-box">
+          <div class="connector-select-group">
+            <label style="font-size:11px; font-weight:700; color:var(--text-muted);">From:</label>
+            <select id="select-full-from" class="form-select" style="padding:6px 10px; font-size:12px;">
+              <option value="sw_a">Switch A Output</option>
+              <option value="sw_b">Switch B Output</option>
+              <option value="sw_cin">Switch Cin Output</option>
+              <option value="xor1_out">XOR₁ Output (Pin 3)</option>
+              <option value="xor2_out">XOR₂ Output (Pin 6)</option>
+              <option value="and1_out">AND₁ Output (Pin 3)</option>
+              <option value="and2_out">AND₂ Output (Pin 6)</option>
+              <option value="or1_out">OR Output (Pin 3)</option>
+            </select>
+
+            <span style="color:var(--text-dim);">➔</span>
+
+            <label style="font-size:11px; font-weight:700; color:var(--text-muted);">To:</label>
+            <select id="select-full-to" class="form-select" style="padding:6px 10px; font-size:12px;">
+              <option value="xor1_in1">XOR₁ Pin 1 (1A)</option>
+              <option value="xor1_in2">XOR₁ Pin 2 (1B)</option>
+              <option value="xor2_in1">XOR₂ Pin 4 (2A)</option>
+              <option value="xor2_in2">XOR₂ Pin 5 (2B)</option>
+              <option value="and1_in1">AND₁ Pin 1 (1A)</option>
+              <option value="and1_in2">AND₁ Pin 2 (1B)</option>
+              <option value="and2_in1">AND₂ Pin 4 (2A)</option>
+              <option value="and2_in2">AND₂ Pin 5 (2B)</option>
+              <option value="or1_in1">OR Pin 1 (1A)</option>
+              <option value="or1_in2">OR Pin 2 (1B)</option>
+              <option value="led_sum">SUM LED Anode</option>
+              <option value="led_carry">CARRY LED Anode</option>
+            </select>
+
+            <button class="tool-btn" style="padding:6px 12px;" onclick="connectFromSelect('full')">
+              🔌 Connect Jumper
+            </button>
+          </div>
+
+          <div style="display:flex; gap:6px;">
+            <button class="tool-btn" style="padding:4px 8px; font-size:11px;" onclick="setCameraView('full', 'iso')">Isometric</button>
+            <button class="tool-btn" style="padding:4px 8px; font-size:11px;" onclick="setCameraView('full', 'top')">Top View</button>
+            <button class="tool-btn" style="padding:4px 8px; font-size:11px;" onclick="resetCameraView('full')">Reset</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Controls Sidebar -->
+      <div class="circuit-controls-sidebar">
+        <!-- Input Switches Card -->
+        <div class="glass-card">
+          <div class="glass-card-header">
+            <span>Binary Inputs (A, B, Cin)</span>
+            <span class="mono" style="color:var(--amber); font-size:11px;">3-BIT OPERANDS</span>
+          </div>
+          <div class="glass-card-body">
+            <div class="inputs-switch-grid">
+              <div class="switch-control-card" id="sw-full-a" onclick="toggleInput('a')">
+                <div class="switch-card-label">Input A</div>
+                <div class="switch-card-state" id="num-full-a">0</div>
+              </div>
+              <div class="switch-control-card" id="sw-full-b" onclick="toggleInput('b')">
+                <div class="switch-card-label">Input B</div>
+                <div class="switch-card-state" id="num-full-b">0</div>
+              </div>
+              <div class="switch-control-card" id="sw-full-cin" onclick="toggleInput('cin')">
+                <div class="switch-card-label">Input Cin</div>
+                <div class="switch-card-state" id="num-full-cin">0</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Gate Signals -->
+        <div class="glass-card">
+          <div class="glass-card-header">
+            <span>5-Gate Logic Propagation</span>
+            <span class="mono" style="font-size:10px; color:var(--text-dim);">SIGNALS</span>
+          </div>
+          <div class="glass-card-body">
+            <div class="gate-indicators-grid">
+              <div class="gate-monitor-pill" id="gate-card-f-xor1">
+                <span>XOR₁ (A⊕B)</span>
+                <strong id="val-gate-f-xor1" class="mono">0</strong>
+              </div>
+              <div class="gate-monitor-pill" id="gate-card-f-xor2">
+                <span>XOR₂ (SUM)</span>
+                <strong id="val-gate-f-xor2" class="mono">0</strong>
+              </div>
+              <div class="gate-monitor-pill" id="gate-card-f-and1">
+                <span>AND₁ (A·B)</span>
+                <strong id="val-gate-f-and1" class="mono">0</strong>
+              </div>
+              <div class="gate-monitor-pill" id="gate-card-f-and2">
+                <span>AND₂ (X₁·Cin)</span>
+                <strong id="val-gate-f-and2" class="mono">0</strong>
+              </div>
+              <div class="gate-monitor-pill" id="gate-card-f-or" style="grid-column: span 2;">
+                <span>74LS32 OR Gate (C₁ + C₂) ➔ Carry-Out</span>
+                <strong id="val-gate-f-or" class="mono">0</strong>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Output LEDs -->
+        <div class="glass-card">
+          <div class="glass-card-header">
+            <span>Outputs (Sum &amp; Cout)</span>
+            <span class="mono" style="font-size:10px; color:var(--green);">MONITOR</span>
+          </div>
+          <div class="glass-card-body">
+            <div class="outputs-leds-grid">
+              <div class="led-output-card" id="led-card-f-sum">
+                <div class="led-bulb-circle"></div>
+                <div style="font-weight:700; font-size:13px; color:var(--cyan);">SUM</div>
+                <div style="font-size:11px; color:var(--text-muted); margin-top:2px;" id="status-f-sum">LOW (0 V)</div>
+              </div>
+              <div class="led-output-card" id="led-card-f-carry">
+                <div class="led-bulb-circle"></div>
+                <div style="font-weight:700; font-size:13px; color:var(--amber);">CARRY-OUT</div>
+                <div style="font-size:11px; color:var(--text-muted); margin-top:2px;" id="status-f-carry">LOW (0 V)</div>
+              </div>
+            </div>
+
+            <div style="margin-top:14px; padding:10px; border-radius:6px; background:rgba(0,0,0,0.3); font-family:var(--mono); font-size:11px; text-align:center;" id="math-eval-full">
+              SUM = 0 ⊕ 0 ⊕ 0 = 0 &nbsp;|&nbsp; Cout = 0 + 0 = 0
+            </div>
+          </div>
+        </div>
+
+        <!-- Truth Table -->
+        <div class="glass-card">
+          <div class="glass-card-header">
+            <span>Full Adder Truth Table</span>
+            <span class="mono" style="font-size:10px;">8 STATES</span>
+          </div>
+          <div class="truth-table-scroll">
+            <table class="truth-table" id="table-full">
+              <thead>
+                <tr><th>#</th><th>A</th><th>B</th><th>Cin</th><th>SUM</th><th>Cout</th></tr>
+              </thead>
+              <tbody>
+                <tr class="active-row"><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td></tr>
+                <tr><td>1</td><td>0</td><td>0</td><td>1</td><td>1</td><td>0</td></tr>
+                <tr><td>2</td><td>0</td><td>1</td><td>0</td><td>1</td><td>0</td></tr>
+                <tr><td>3</td><td>0</td><td>1</td><td>1</td><td>0</td><td>1</td></tr>
+                <tr><td>4</td><td>1</td><td>0</td><td>0</td><td>1</td><td>0</td></tr>
+                <tr><td>5</td><td>1</td><td>0</td><td>1</td><td>0</td><td>1</td></tr>
+                <tr><td>6</td><td>1</td><td>1</td><td>0</td><td>0</td><td>1</td></tr>
+                <tr><td>7</td><td>1</td><td>1</td><td>1</td><td>1</td><td>1</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+</main>
+
+<!-- Scripts -->
+<script src="js/common.js"></script>
+<script src="js/circuit-engine.js"></script>
+<script src="js/three-bench.js"></script>
+<script src="js/spectator.js"></script>
+
+<script>
+  function switchCircuit(mode) {
+    circuitState.mode = mode;
+    const halfSec = document.getElementById('section-half-adder');
+    const fullSec = document.getElementById('section-full-adder');
+    const halfBtn = document.getElementById('bench-btn-half');
+    const fullBtn = document.getElementById('bench-btn-full');
+
+    if (mode === 'half') {
+      halfSec.style.display = 'block';
+      fullSec.style.display = 'none';
+      halfBtn.className = 'step-link active';
+      fullBtn.className = 'step-link';
+    } else {
+      halfSec.style.display = 'none';
+      fullSec.style.display = 'block';
+      halfBtn.className = 'step-link';
+      fullBtn.className = 'step-link active';
+    }
+
+    setTimeout(() => {
+      if (!scenes[mode].initialized) {
+        init3DWorkbench(mode);
+      }
+      updateAllViews();
+    }, 60);
+  }
+
+  document.addEventListener('DOMContentLoaded', () => {
+    // Check if spectator mode was requested via query params or session
+    const urlParams = new URLSearchParams(window.location.search);
+    const roleParam = urlParams.get('role');
+    
+    if (roleParam === 'spectator' || currentSession.role === 'spectator') {
+      setTimeout(() => {
+        openSpectatorDrawer();
+      }, 300);
+    }
+
+    // Initialize 3D Workbench for Half Adder
+    switchCircuit('half');
+  });
+</script>
+
+</body>
+</html>

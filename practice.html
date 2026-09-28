@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>AdderVerse — Practice &amp; Viva Assessment</title>
+  <link rel="icon" type="image/png" href="logo.png"/>
+
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+
+  <!-- Stylesheets -->
+  <link rel="stylesheet" href="css/main.css"/>
+  <link rel="stylesheet" href="css/practice.css"/>
+</head>
+<body>
+
+<div class="tech-bg"></div>
+
+<!-- Top Navbar -->
+<header class="lab-navbar" id="main-navbar">
+  <div class="container nav-container">
+    
+    <a href="circuit.html" class="brand-box">
+      <img src="logo.png" alt="AdderVerse Logo" class="brand-logo-img"/>
+      <div>
+        <div class="brand-title">
+          AdderVerse <span class="tag">3D Virtual Lab</span>
+        </div>
+        <div class="brand-dept">Digital Logic Design &amp; Assessment</div>
+      </div>
+    </a>
+
+    <!-- Navigation Tabs -->
+    <nav class="nav-steps">
+      <a href="circuit.html" class="step-link">
+        <span class="step-num">1</span>
+        <span>Half Adder 3D</span>
+      </a>
+      <a href="circuit.html" class="step-link">
+        <span class="step-num">2</span>
+        <span>Full Adder 3D</span>
+      </a>
+      <a href="practice.html" class="step-link active">
+        <span class="step-num">3</span>
+        <span>Practice &amp; Viva</span>
+      </a>
+    </nav>
+
+    <!-- Nav Actions -->
+    <div class="nav-actions">
+      <div class="student-badge" id="student-nav-badge">
+        <div class="student-avatar" id="avatar-circle">V</div>
+        <div>
+          <div style="font-weight:700; line-height:1.2;" id="student-name-display">Vidhi Chavhan</div>
+          <div style="font-size:10px; color:var(--text-dim);" id="student-meta-display">21CSE045 · CSE</div>
+        </div>
+      </div>
+      <a href="index.html" class="btn-logout" onclick="performLogout(); return false;" title="Exit Lab Session">
+        <span>Logout</span> ⎋
+      </a>
+    </div>
+
+  </div>
+</header>
+
+<!-- Main Assessment Container -->
+<main class="assessment-container container">
+
+  <div class="assessment-hero">
+    <div>
+      <h1 style="font-size:28px; font-weight:800; letter-spacing:-0.02em;">
+        Practice Questions &amp; Viva Voce Assessment
+      </h1>
+      <p style="color:var(--text-muted); font-size:13px; margin-top:4px;">
+        Dynamic engineering questions randomized on every attempt. Immediate scoring, rationale cards, and verified certificate generated.
+      </p>
+    </div>
+
+    <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
+      <button class="tool-btn primary" onclick="submitAssessmentQuiz()" id="btn-submit-quiz">
+        <span>✓ Evaluate Answers</span>
+      </button>
+      <button class="tool-btn" onclick="generateNewQuizBatch()">
+        <span>↺ Generate New Random Questions</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- Active Batch Notice -->
+  <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:18px; padding:10px 16px; border-radius:8px; background:var(--surface); border:1px solid var(--border);">
+    <div style="font-size:12px; color:var(--text-muted);">
+      <strong style="color:var(--cyan);" id="quiz-attempt-label">Assessment Set #1</strong> · 8 questions randomly sampled from the 32-question bank.
+    </div>
+    <button class="tool-btn" style="padding:4px 10px; font-size:11px;" onclick="generateNewQuizBatch()">
+      🎲 Shuffle Questions
+    </button>
+  </div>
+
+  <!-- Score Summary Panel -->
+  <div class="score-summary-card" id="quiz-results-banner" style="display:none;">
+    <div style="font-size:11px; text-transform:uppercase; letter-spacing:0.12em; color:var(--green); font-weight:700;">
+      Assessment Evaluation Complete
+    </div>
+    <div class="score-display-number">
+      <span id="score-val-text">0</span> / 8
+    </div>
+    <div id="score-badge-element" class="score-badge-pill"></div>
+    <p style="color:var(--text-muted); font-size:13px; margin-top:8px;" id="score-feedback-text"></p>
+  </div>
+
+  <!-- Dynamic Questions List -->
+  <div class="questions-container" id="quiz-questions-list">
+    <!-- Rendered dynamically by js/practice.js -->
+  </div>
+
+  <!-- Technical Comparison Table -->
+  <div class="comparison-table-card glass-card">
+    <div class="glass-card-header">
+      <span>Comprehensive Technical Comparison: Half Adder vs. Full Adder</span>
+      <span class="mono" style="font-size:10px; color:var(--cyan);">VIVA CHEATSHEET</span>
+    </div>
+    <div class="table-responsive">
+      <table class="compare-table">
+        <thead>
+          <tr>
+            <th>Evaluation Parameter</th>
+            <th class="col-half">Half Adder</th>
+            <th class="col-full">Full Adder</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Input Bit Count</td>
+            <td class="mono">2 Inputs: A, B</td>
+            <td class="mono">3 Inputs: A, B, C<sub>in</sub></td>
+          </tr>
+          <tr>
+            <td>Carry-In Handling</td>
+            <td>Cannot accept carry from previous stage</td>
+            <td>Accepts incoming carry from lower significance bit</td>
+          </tr>
+          <tr>
+            <td>Logic Gate Count</td>
+            <td class="mono">2 Gates: 1 XOR + 1 AND</td>
+            <td class="mono">5 Gates: 2 XOR + 2 AND + 1 OR</td>
+          </tr>
+          <tr>
+            <td>Truth Table Rows</td>
+            <td class="mono">2² = 4 Combinations</td>
+            <td class="mono">2³ = 8 Combinations</td>
+          </tr>
+          <tr>
+            <td>SUM Equation</td>
+            <td class="mono">SUM = A ⊕ B</td>
+            <td class="mono">SUM = A ⊕ B ⊕ C<sub>in</sub></td>
+          </tr>
+          <tr>
+            <td>CARRY Equation</td>
+            <td class="mono">CARRY = A · B</td>
+            <td class="mono">C<sub>out</sub> = (A·B) + (C<sub>in</sub>·(A⊕B))</td>
+          </tr>
+          <tr>
+            <td>Input Condition (1, 1, 1)</td>
+            <td>Invalid / Not Supported</td>
+            <td class="mono">SUM = 1, C<sub>out</sub> = 1 (Decimal 3)</td>
+          </tr>
+          <tr>
+            <td>ALU Application</td>
+            <td>Used for the LSB (Bit 0) stage</td>
+            <td>Cascaded for all remaining higher order bits (Bits 1..N)</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Verified Completion Certificate -->
+  <div class="certificate-card" id="student-certificate-box">
+    <div style="font-size:36px; margin-bottom:8px;">🎓</div>
+    <h2 style="font-size:22px; font-weight:800; color:var(--text);">AdderVerse Virtual Lab Completion Verified</h2>
+    <p style="color:var(--text-muted); font-size:13px; margin:8px auto; max-width:540px;">
+      This document certifies that <strong style="color:var(--cyan);" id="cert-student-name">Student</strong> (Roll No: <strong style="color:var(--text);" id="cert-student-roll">N/A</strong>, Dept: <strong style="color:var(--text);" id="cert-student-dept">CSE</strong>) has wired and verified the operation of Half Adder and Full Adder circuits in real-time 3D simulation.
+    </p>
+
+    <!-- Instructor Verification Stamp (Recorded from Spectator Mode) -->
+    <div id="cert-instructor-stamp-box" style="display:none; max-width:540px; margin:16px auto; padding:12px 18px; border-radius:10px; background:rgba(16,185,129,0.12); border:1px solid var(--green); text-align:left;">
+      <div style="font-size:12px; font-weight:700; color:var(--green); display:flex; align-items:center; gap:6px;">
+        <span>✓</span> Remotely Verified by Instructor in Spectator Mode
+      </div>
+      <div style="font-size:11px; color:var(--text-muted); margin-top:4px;" id="cert-instructor-details">
+        Reviewer: Prof. Evaluator · Verdict: Verified &amp; Approved
+      </div>
+    </div>
+
+    <div style="font-family:var(--mono); font-size:11px; color:var(--text-dim); margin-top:14px;" id="cert-timestamp">
+      Session Timestamp: 2026-09-28
+    </div>
+  </div>
+
+</main>
+
+<!-- Scripts -->
+<script src="js/common.js"></script>
+<script src="js/practice.js"></script>
+
+</body>
+</html>

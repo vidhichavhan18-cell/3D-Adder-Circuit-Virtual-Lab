@@ -1,0 +1,602 @@
+/* ==========================================================================
+   CIRCUIT WORKBENCH & 3D LAB STYLES (css/circuit.css)
+   ========================================================================== */
+
+.workbench-container {
+  padding: 24px 0 72px;
+}
+
+.workbench-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.workbench-heading-title {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 22px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+
+.workbench-heading-desc {
+  color: var(--text-muted);
+  font-size: 13px;
+  margin-top: 4px;
+}
+
+.circuit-spec-badge {
+  font-size: 11px;
+  font-weight: 700;
+  padding: 3px 10px;
+  border-radius: 99px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+.badge-half {
+  background: rgba(0, 212, 255, 0.15);
+  color: var(--cyan);
+  border: 1px solid rgba(0, 212, 255, 0.3);
+}
+.badge-full {
+  background: rgba(245, 158, 11, 0.15);
+  color: var(--amber);
+  border: 1px solid rgba(245, 158, 11, 0.3);
+}
+
+.workbench-action-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+/* Wiring Status Strip */
+.wiring-status-strip {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 18px;
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  margin-bottom: 20px;
+  transition: all 0.3s ease;
+}
+.wiring-status-strip.state-incomplete {
+  border-color: rgba(245, 158, 11, 0.35);
+  background: rgba(245, 158, 11, 0.04);
+}
+.wiring-status-strip.state-verified {
+  border-color: rgba(16, 185, 129, 0.4);
+  background: rgba(16, 185, 129, 0.06);
+}
+
+.wiring-guide-left {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.wiring-mode-pill {
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  padding: 4px 10px;
+  border-radius: 99px;
+  text-transform: uppercase;
+  flex-shrink: 0;
+}
+.pill-manual {
+  background: rgba(245, 158, 11, 0.2);
+  color: var(--amber);
+  border: 1px solid var(--amber);
+}
+.pill-complete {
+  background: rgba(16, 185, 129, 0.2);
+  color: var(--green);
+  border: 1px solid var(--green);
+}
+
+.wiring-instructions-text {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text);
+}
+.wiring-instructions-sub {
+  font-size: 11px;
+  color: var(--text-dim);
+  margin-top: 2px;
+}
+
+.wiring-progress-counter {
+  font-family: var(--mono);
+  font-size: 13px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* 3D Workbench Layout */
+.workbench-dashboard {
+  display: grid;
+  grid-template-columns: 1fr 380px;
+  gap: 22px;
+}
+
+.viewport-3d-wrapper {
+  position: relative;
+  width: 100%;
+  height: 580px;
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  background: #040810;
+  border: 1px solid var(--border);
+  box-shadow: inset 0 0 40px rgba(0, 0, 0, 0.8), 0 8px 32px rgba(0, 0, 0, 0.4);
+}
+
+.canvas-3d {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+.canvas-overlay-badges {
+  position: absolute;
+  top: 14px;
+  left: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  pointer-events: none;
+}
+
+.canvas-cam-controls-hint {
+  position: absolute;
+  bottom: 14px;
+  left: 14px;
+  padding: 6px 12px;
+  border-radius: 99px;
+  background: rgba(3, 8, 16, 0.75);
+  backdrop-filter: blur(8px);
+  border: 1px solid var(--border);
+  font-size: 11px;
+  color: var(--text-muted);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* Wire Connector Selector Panel */
+.wire-connector-box {
+  margin-top: 14px;
+  padding: 14px 18px;
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.connector-select-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 1;
+}
+
+/* Sidebar Panels */
+.circuit-controls-sidebar {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.inputs-switch-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+  gap: 10px;
+}
+
+.switch-control-card {
+  padding: 14px;
+  border-radius: var(--radius-sm);
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid var(--border);
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  user-select: none;
+}
+.switch-control-card:hover {
+  background: rgba(255, 255, 255, 0.05);
+}
+.switch-control-card.active {
+  background: rgba(16, 185, 129, 0.12);
+  border-color: var(--green);
+  box-shadow: 0 0 16px var(--green-glow);
+}
+.switch-card-label {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  margin-bottom: 4px;
+}
+.switch-card-state {
+  font-family: var(--mono);
+  font-size: 20px;
+  font-weight: 800;
+  color: var(--text-dim);
+}
+.switch-control-card.active .switch-card-state {
+  color: var(--green);
+}
+
+/* Logic Gates State Monitor */
+.gate-indicators-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+.gate-monitor-pill {
+  padding: 8px 10px;
+  border-radius: 6px;
+  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 11px;
+}
+.gate-monitor-pill.active-cyan {
+  border-color: var(--cyan);
+  background: rgba(0, 212, 255, 0.08);
+  color: var(--cyan);
+}
+.gate-monitor-pill.active-amber {
+  border-color: var(--amber);
+  background: rgba(245, 158, 11, 0.08);
+  color: var(--amber);
+}
+.gate-monitor-pill.active-purple {
+  border-color: var(--purple);
+  background: rgba(168, 85, 247, 0.08);
+  color: var(--purple);
+}
+
+/* Output LEDs */
+.outputs-leds-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+.led-output-card {
+  padding: 14px;
+  border-radius: var(--radius-sm);
+  background: rgba(0, 0, 0, 0.35);
+  border: 1px solid var(--border);
+  text-align: center;
+  transition: all 0.25s ease;
+}
+.led-output-card.on-sum {
+  border-color: var(--cyan);
+  background: rgba(0, 212, 255, 0.12);
+  box-shadow: 0 0 24px var(--cyan-glow);
+}
+.led-output-card.on-carry {
+  border-color: var(--amber);
+  background: rgba(245, 158, 11, 0.12);
+  box-shadow: 0 0 24px var(--amber-glow);
+}
+.led-bulb-circle {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  margin: 0 auto 8px;
+  background: #1e293b;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  transition: all 0.25s;
+}
+.led-output-card.on-sum .led-bulb-circle {
+  background: var(--cyan);
+  box-shadow: 0 0 16px var(--cyan);
+}
+.led-output-card.on-carry .led-bulb-circle {
+  background: var(--amber);
+  box-shadow: 0 0 16px var(--amber);
+}
+
+/* Truth Table Styles */
+.truth-table-scroll {
+  max-height: 220px;
+  overflow-y: auto;
+}
+.truth-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-family: var(--mono);
+  font-size: 12px;
+}
+.truth-table th {
+  padding: 8px 10px;
+  background: rgba(0, 0, 0, 0.4);
+  color: var(--text-muted);
+  text-align: center;
+  border-bottom: 1px solid var(--border);
+  position: sticky;
+  top: 0;
+}
+.truth-table td {
+  padding: 8px 10px;
+  text-align: center;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+}
+.truth-table tr.active-row {
+  background: rgba(0, 212, 255, 0.15);
+  box-shadow: inset 2px 0 0 var(--cyan);
+}
+.truth-table tr.active-row td {
+  color: #fff;
+  font-weight: 700;
+}
+
+/* Guided Progress */
+.guided-progress-panel {
+  margin-top: 14px;
+  padding: 12px 14px;
+  background: rgba(0, 0, 0, 0.25);
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+}
+.guided-task-label {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: var(--cyan);
+  letter-spacing: 0.06em;
+}
+.guided-task-desc {
+  font-size: 12px;
+  color: var(--text);
+  margin: 4px 0 8px;
+}
+.guided-progress-bar {
+  display: flex;
+  gap: 4px;
+}
+.progress-pip {
+  flex: 1;
+  height: 4px;
+  border-radius: 99px;
+  background: rgba(255, 255, 255, 0.1);
+  transition: all 0.2s;
+}
+.progress-pip.completed {
+  background: var(--green);
+}
+.progress-pip.current {
+  background: var(--cyan);
+  box-shadow: 0 0 8px var(--cyan);
+}
+
+/* 2D Schematic View Modal / Drawer */
+.schematic-view-card {
+  display: none;
+  margin-top: 18px;
+  padding: 20px;
+  border-radius: var(--radius-md);
+  background: var(--surface);
+  border: 1px solid var(--border);
+}
+.schematic-view-card.show {
+  display: block;
+}
+
+/* Spectator Mode Drawer & Overlay */
+.spectator-drawer-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 1050;
+  background: rgba(3, 8, 16, 0.65);
+  backdrop-filter: blur(6px);
+  display: none;
+  justify-content: flex-end;
+}
+.spectator-drawer-backdrop.show {
+  display: flex;
+  animation: fadeIn 0.2s ease;
+}
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+.spectator-drawer {
+  width: 100%;
+  max-width: 440px;
+  height: 100%;
+  background: #0b1524;
+  border-left: 1px solid rgba(168, 85, 247, 0.35);
+  box-shadow: -10px 0 40px rgba(0, 0, 0, 0.6), -1px 0 16px rgba(168, 85, 247, 0.2);
+  display: flex;
+  flex-direction: column;
+  transform: translateX(100%);
+  animation: slideInRight 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+@keyframes slideInRight { to { transform: translateX(0); } }
+
+.spectator-header {
+  padding: 18px 20px;
+  background: rgba(168, 85, 247, 0.08);
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.spectator-title {
+  font-size: 15px;
+  font-weight: 800;
+  color: #f1f5f9;
+  letter-spacing: -0.01em;
+}
+.spectator-subtitle {
+  font-size: 11px;
+  color: #c084fc;
+}
+.spectator-close-btn {
+  width: 30px;
+  height: 30px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--border);
+  color: var(--text-muted);
+  cursor: pointer;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+}
+.spectator-close-btn:hover {
+  background: rgba(239, 68, 68, 0.15);
+  border-color: var(--red);
+  color: var(--red);
+}
+
+.spectator-body {
+  padding: 20px;
+  overflow-y: auto;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.spectator-status-banner {
+  background: rgba(16, 185, 129, 0.08);
+  border: 1px solid rgba(16, 185, 129, 0.3);
+  border-radius: var(--radius-sm);
+  padding: 12px 14px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.status-indicator-group {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.live-pulse-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--green);
+  box-shadow: 0 0 10px var(--green);
+  animation: pulse 1.6s infinite;
+  flex-shrink: 0;
+}
+
+.spectator-section {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 14px 16px;
+}
+.spectator-section.spec-trigger-box {
+  border-color: rgba(168, 85, 247, 0.3);
+  background: linear-gradient(180deg, rgba(168, 85, 247, 0.04) 0%, var(--surface) 100%);
+}
+.spectator-section-title {
+  font-size: 11px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--cyan);
+  margin-bottom: 10px;
+}
+.spec-info-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  font-size: 12px;
+}
+.spec-label-dim {
+  color: var(--text-muted);
+  font-size: 11px;
+}
+.spec-progress-bar-bg {
+  width: 100%;
+  height: 6px;
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 99px;
+  overflow: hidden;
+  margin: 8px 0;
+}
+.spec-progress-bar-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--cyan), var(--purple));
+  border-radius: 99px;
+  transition: width 0.3s ease;
+}
+.spec-badge-pill {
+  font-size: 10px;
+  font-weight: 700;
+  padding: 2px 7px;
+  border-radius: 99px;
+  background: rgba(0, 212, 255, 0.15);
+  color: var(--cyan);
+  border: 1px solid rgba(0, 212, 255, 0.3);
+}
+.spec-btn-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8px;
+}
+.spec-vector-btn {
+  padding: 8px 10px;
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: var(--text);
+  font-family: var(--mono);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+.spec-vector-btn:hover {
+  background: rgba(168, 85, 247, 0.2);
+  border-color: var(--purple);
+  color: #fff;
+  transform: translateY(-1px);
+}
+.spec-vector-btn:active {
+  transform: translateY(1px);
+}
+.spec-monitor-panel {
+  margin-top: 12px;
+  padding: 10px;
+  border-radius: 6px;
+  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid var(--border);
+}
+.spec-monitor-results {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--text-muted);
+  margin-top: 6px;
+  max-height: 140px;
+  overflow-y: auto;
+}
+
+@media (max-width: 1024px) {
+  .workbench-dashboard {
+    grid-template-columns: 1fr;
+  }
+}
