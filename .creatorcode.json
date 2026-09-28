@@ -1,0 +1,9 @@
+{
+  "publishedTitle": "Adder-Circuit-Virtual-Lab-main",
+  "publishedDescription": "AdderVerse is an interactive, browser-based 3D virtual laboratory engineered to bridge the gap between theoretical Boolean logic and physical hardware breadboarding. Built with Three.js, it allows students to wire realistic 14-pin DIP ICs (7486 XOR, 7408 AND, 7432 OR), flip mechanical toggle switches, and observe real-time signal propagation through emissive LEDs with active electrical short-circuit protection. To empower remote engineering education, AdderVerse includes a Multi-User Spectator Mode where instructors can observe a student’s wiring progress live and trigger remote input sequences for instant diagnostic verification.",
+  "publishedVersion": "1.0.0",
+  "publishedTags": "",
+  "id": "proj-ylzifnd",
+  "name": "Adder-Circuit-Virtual-Lab-main",
+  "cloudProjectId": "jXb3U4HjAswAMOGkGk41"
+}
