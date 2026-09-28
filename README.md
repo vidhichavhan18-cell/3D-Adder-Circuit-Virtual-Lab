@@ -407,11 +407,9 @@ If you reuse or modify the project, please provide appropriate credit to the ori
 
 ---
 
-## 👩‍💻 Author
+## 👩‍💻 Team 
 
-**Vidhi Chavhan**
-
-B.Tech — Artificial Intelligence & Data Science
+**SRIPE-X**
 
 GitHub:
 https://github.com/vidhichavhan18-cell
